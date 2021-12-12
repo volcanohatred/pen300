@@ -102,6 +102,18 @@ use vim to open then use :%!xxd to hexdump go down to candycane change it.  also
 # shellcode primer
 https://tracer.kringlecastle.com/ - do it
 
+in challenge 4 error
+```
+; TODO: Find the syscall number for sys_exit and put it in rax
+mov rax, 60h
+; TODO: Put the exit_code we want (99) in rdi
+mov rdi, 99h
+; Perform the actual syscall
+syscall
+```
+
+![](ar_erro.png)
+
 # ipv6 scanner
 
 rubber ducky usb device
@@ -113,11 +125,142 @@ ruby cyster
 # front door frost tower
 
 iwlist scanning
+```
 Address: 02:4A:46:68:69:21
                     Frequency:5.2 GHz (Channel 40)
                     Quality=48/70  Signal level=-62 dBm  
                     Encryption key:off
                     Bit Rates:400 Mb/s
                     ESSID:"FROST-Nidus-Setup"
+```
 
 iwconfig 
+
+# FPGA
+
+nned hints form the slot machine
+https://fpga.jackfrosttower.com/?challenge=fpga&id=7cdf2a05-13bd-432b-aee8-e8cb55a5cd46&username=ashwin&area=rooftop&location=13,9#
+
+HINT: 
+`If $rtoi(real_no * 10) - ($rtoi(real_no) * 10) > 4, add 1`
+
+https://www.youtube.com/watch?v=GFdG1PJ4QjA
+
+changing actual digitallogic circuitry
+
+Trademarkphrse -  let me talk you your manager
+
+https://www.fpga4fun.com/
+
+
+always @(posedge clk) begin
+        if (counter == N) begin
+            counter <= 0;
+            waveout <= ~ waveout;
+        end else begin
+            counter <= counter + 1;
+        end
+    end
+
+# printer exploitation
+
+https://printer.kringlecastle.com/
+
+What dowe need todo? we can put in our own code in the firmware.
+
+# IMDS
+
+```cmd
+}elfu@d65bce7e3f36:~$ curl http://169.254.169.254/latest/dynamic/instance-identity/document |jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   451  100   451    0     0   440k      0 --:--:-- --:--:-- --:--:--  440k
+{
+  "accountId": "PCRVQVHN4S0L4V2TE",
+  "imageId": "ami-0b69ea66ff7391e80",
+  "availabilityZone": "np-north-1f",
+  "ramdiskId": null,
+  "kernelId": null,
+  "devpayProductCodes": null,
+  "marketplaceProductCodes": null,
+  "version": "2017-09-30",
+  "privateIp": "10.0.7.10",
+  "billingProducts": null,
+  "instanceId": "i-1234567890abcdef0",
+  "pendingTime": "2021-12-01T07:02:24Z",
+  "architecture": "x86_64",
+  "instanceType": "m4.xlarge",
+  "region": "np-north-1"
+}
+```
+
+meta-data
+```
+}elfu@d65bce7e3f36:~$ curl http://169.254.169.254/latest/dynamic/instance-identity/document |jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   451  100   451    0     0   440k      0 --:--:-- --:--:-- --:--:--  440k
+{
+  "accountId": "PCRVQVHN4S0L4V2TE",
+  "imageId": "ami-0b69ea66ff7391e80",
+  "availabilityZone": "np-north-1f",
+  "ramdiskId": null,
+  "kernelId": null,
+  "devpayProductCodes": null,
+  "marketplaceProductCodes": null,
+  "version": "2017-09-30",
+  "privateIp": "10.0.7.10",
+  "billingProducts": null,
+  "instanceId": "i-1234567890abcdef0",
+  "pendingTime": "2021-12-01T07:02:24Z",
+  "architecture": "x86_64",
+  "instanceType": "m4.xlarge",
+  "region": "np-north-1"
+}
+```
+
+`http://169.254.169.254/latest/meta-data/iam/security-credentials/elfu-deploy-role ; echo`
+
+elfu-deploy-role
+
+```
+elfu@d65bce7e3f36:~$ curl http://169.254.169.254/latest/meta-data/iam/security-credentials/elfu-deploy-role ; echo
+{
+        "Code": "Success",
+        "LastUpdated": "2021-12-02T18:50:40Z",
+        "Type": "AWS-HMAC",
+        "AccessKeyId": "AKIA5HMBSK1SYXYTOXX6",
+        "SecretAccessKey": "CGgQcSdERePvGgr058r3PObPq3+0CfraKcsLREpX",
+        "Token": "NR9Sz/7fzxwIgv7URgHRAckJK0JKbXoNBcy032XeVPqP8/tWiR/KVSdK8FTPfZWbxQ==",
+        "Expiration": "2026-12-02T18:50:40Z"
+}
+```
+
+For IMDSv2 access, you must request a token from the IMDS server using the
+X-aws-ec2-metadata-token-ttl-seconds header to indicate how long you want the token to be
+used for (between 1 and 21,600 secods).
+Examine the contents of the 'gettoken.sh' script in the current directory using 'cat'.
+
+elfu@d65bce7e3f36:~$ echo $TOKEN
+Uv38ByGCZU8WP18PmmIdcpVmx00QA3xNe7sEB9Hixkk=
+
+`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/region`
+
+noxious o dor: anytimr yousee url for input try ssf
+
+# Slots machine
+
+HTTP/2 200 OK
+Date: Sun, 12 Dec 2021 06:33:32 GMT
+Date: Sun, 12 Dec 2021 06:33:32 GMT
+X-Powered-By: PHP/7.4.26
+Cache-Control: no-cache, private
+Content-Type: application/json
+X-Ratelimit-Limit: 60
+X-Ratelimit-Remaining: 58
+Access-Control-Allow-Origin: *
+Via: 1.1 google
+Alt-Svc: clear
+
+{"success":true,"data":{"credit":176,"jackpot":0,"free_spin":0,"free_num":0,"scaler":0,"num_line":20,"bet_amount":1,"pull":{"WinAmount":0,"FreeSpin":0,"WildFixedIcons":[],"HasJackpot":false,"HasScatter":false,"WildColumIcon":"","ScatterPrize":0,"SlotIcons":["icon2","icon1","icon9","icon5","icon5","icon7","icon9","icon10","icon9","icon10","icon1","scatter","icon5","icon9","icon3"],"ActiveIcons":[],"ActiveLines":[]},"response":"Woweee!"},"message":"Spin success"}
+

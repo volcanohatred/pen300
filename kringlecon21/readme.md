@@ -264,3 +264,199 @@ Alt-Svc: clear
 
 {"success":true,"data":{"credit":176,"jackpot":0,"free_spin":0,"free_num":0,"scaler":0,"num_line":20,"bet_amount":1,"pull":{"WinAmount":0,"FreeSpin":0,"WildFixedIcons":[],"HasJackpot":false,"HasScatter":false,"WildColumIcon":"","ScatterPrize":0,"SlotIcons":["icon2","icon1","icon9","icon5","icon5","icon7","icon9","icon10","icon9","icon10","icon1","scatter","icon5","icon9","icon3"],"ActiveIcons":[],"ActiveLines":[]},"response":"Woweee!"},"message":"Spin success"}
 
+# pcap analysis
+for pcap: https://apackets.com/pcaps/flows
+
+Snooty+lady
+Yaqh - 1024
+
+Bluk - human
+
+Quib - ugly little man
+
+
+Urgh - stupid man
+
+Kraq - rude couple
+
+Stuv - grumpy man
+
+Gavk - annoying woman
+
+Bloz - nasty bad woman
+
+Euuk - Ugly mean couple
+
+Crag - Bald man
+
+Klug - funny looking man
+
+Hagg - Incredibly angry lady - 1st 1024
+
+Muffy+VonDuchess+Sebastian - complained error room 1024
+
+Wukk - crabby woman
+
+Ikky - Family in room
+
+Flud - very cranky lady 2nd 1024
+
+Muffy+VonDuchess+Sebastian 
+
+Flud Hagg Yaqh
+
+# applying for jack frost tower IMDS exploitation
+
+Not able to run the same commands, dir buster?
+
+# elf moving 
+
+Guide 
+```python
+import elf, munchkins, levers, lollipops, yeeters, pits
+# Grab our lever object
+lever = levers.get(0)
+munchkin = munchkins.get(0)
+lollipop = lollipops.get(0)
+# move to lever position
+elf.moveTo(lever.position)
+# get lever int and add 2 and submit val
+leverData = lever.data() + 2
+lever.pull(leverData)
+# Grab lollipop and stand next to munchkin
+elf.moveLeft(1)
+elf.moveUp(8)
+# Solve the munchkin's challenge
+munchList = munchkin.ask() # e.g. [1, 3, "a", "b", 4]
+answer_list = []
+for elem in munchList:
+    if type(elem) == int:
+        answer_list.append(elem)
+munchkin.answer(answer_list)
+elf.moveUp(2) # Move to finish
+```
+
+1. 
+
+elf.moveLeft(10)
+elf.moveUp(100)
+
+2. 
+
+```python
+import elf, munchkins, levers, lollipops, yeeters, pits
+
+
+all_lollipops = lollipops.get()
+elf.moveTo(all_lollipops[1].position)
+elf.moveTo(all_lollipops[0].position)
+elf.moveLeft(3)
+elf.moveUp(100)
+```
+
+3. 
+
+lever0 = levers.get(0)
+lollipop0 = lollipops.get(0)
+
+leverdata = lever0.data() + 2
+elf.moveTo(lever0.position)
+
+lever0.pull(leverdata)
+elf.moveTo(lollipop0.position)
+elf.moveUp(100)
+
+4. 
+
+import elf, munchkins, levers, lollipops, yeeters, pits
+lever0, lever1, lever2, lever3, lever4 = levers.get()
+elf.moveLeft(2)
+lever4.pull("A String")
+elf.moveTo(lever3.position)
+lever3.pull(True)
+elf.moveTo(lever2.position)
+lever2.pull(1)
+elf.moveTo(lever1.position)
+lever1.pull([1])
+elf.moveTo(lever0.position)
+lever0.pull({})
+elf.moveUp(100)
+
+5. 
+
+lever0, lever1, lever2, lever3, lever4 = levers.get()
+elf.moveLeft(2)
+lever4.pull("undefined concatenate")
+elf.moveTo(lever3.position)
+lever3.pull(True)
+elf.moveTo(lever2.position)
+lever2.pull(lever2.data() + 1)
+elf.moveTo(lever1.position)
+a = lever1.data()
+a.append(1)
+lever1.pull(a)
+elf.moveTo(lever0.position)
+b = lever0.data()
+b['strkey'] = "strvalue"
+lever0.pull(b)
+elf.moveUp(100)
+
+6. 
+wait for the array input
+
+```
+import elf, munchkins, levers, lollipops, yeeters, pits
+lever = levers.get(0)
+data = lever.data()
+if type(data) == type([]):
+    for i in range(len(data)):
+        data[i] = data[i] + 1
+print(data)
+#elf.move
+elf.moveTo(lever.position)
+#lever.something
+lever.pull(data)
+elf.moveUp(10000)
+```
+
+7. 
+
+8. 
+
+import elf, munchkins, levers, lollipops, yeeters, pits
+all_lollipops = lollipops.get()
+lever = levers.get(0)
+a = ["munchkins rule"] + lever.data()
+for lollipop in all_lollipops:
+    elf.moveTo(lollipop.position)
+elf.moveTo(lever.position)
+lever.pull(a)
+elf.moveLeft(100)
+elf.moveDown(100)
+elf.moveLeft(3)
+elf.moveUp(1000)
+
+# caramel santiago
+They were dressed for 4.0°C and overcast conditions. The elf mentioned something about Stack Overflow and Golang.
+
+flask cookie
+
+`using flas unsign` not working
+1. try 1
+hogmany - scotland
+tab for indent
+
+They said, if asked, they would describe their next location in three words as "frozen, push, and tamed.
+ofcom uk
+They were dressed for 11.0°C and overcast conditions. The elf mentioned something about Stack Overflow and C#.
+
+They said, if asked, they would describe their next location as "only milder vanilla."
+slack
+
+2. try 2
+
+
+# exif tool
+
+last modified by Jack frost
+2021-12-21

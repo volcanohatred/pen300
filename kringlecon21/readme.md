@@ -114,9 +114,7 @@ syscall
 
 ![](ar_erro.png)
 
-# ipv6 scanner
-
-rubber ducky usb device
+# rubber ducky usb device
 ickymcgoop
 
 # printer exploytation
@@ -559,3 +557,16 @@ preinstall.sh
 whiz
 
 
+# ipv6 console
+
+192.168.160.3
+
+2604:6000:1528:cd:d55a:f8a7:d30a:2
+
+fe80::42:c0ff:fea8:a003
+netcat
+nmap
+ping/ ping6
+curl
+
+nmap unable to

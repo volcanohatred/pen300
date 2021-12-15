@@ -668,6 +668,7 @@ fail2ban-regex /var/log/hohono.log /etc/fail2ban/filter.d/my_rules.conf
 failregex = .*Invalid heartbeat 'charlie' from 171.104.46.179*X-Forwarded-For: <HOST>.*
 
 [Definition]
-failregex =  <HOST> .* Invalid
+failregex = .* Invalid .* <HOST> .*$
+
 
 

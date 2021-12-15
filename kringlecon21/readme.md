@@ -562,11 +562,112 @@ whiz
 192.168.160.3
 
 2604:6000:1528:cd:d55a:f8a7:d30a:2
-
+02:42:c0:a8:a0:03
 fe80::42:c0ff:fea8:a003
+
+ping 2604:6000:1528:cd:d55a:f8a7:d30a:2
+ping 02:42:c0:a8:a0:03
+ping fe80::42:c0ff:fea8:a003
+
+nmap -A -p- 192.168.160.3
+nmap -6 -A 02:42:c0:a8:a0:03
+nmap -6 -A -p- fe80::42:c0ff:fea8:a003
+nmap -6 -A -p- 2604:6000:1528:cd:d55a:f8a7:d30a:2
+
 netcat
 nmap
 ping/ ping6
 curl
 
-nmap unable to
+ashwin.ipvguest.kringlecastle.com
+
+nmap unable to 
+```
+ping 2001:7b8:666:ffff::1:42 -I eth0
+nmap -6 -sP 2604:6000:1528:cd:d55a:f8a7:d30a:2%eth0
+curl http://[2604:6000:1528:cd:d55a:f8a7:d30a:2]:8080/ --interface eth0
+wget http://[2604:6000:1528:cd:d55a:f8a7:d30a:2]:8080/
+telnet -6 2604:6000:1528:cd:d55a:f8a7:d30a:2
+nc -6 2001:7b8:666:ffff::1:42%eth0 23
+
+```
+
+# santa's log naughty list
+
+tail /var/log/hohono.log
+
+/root/naughtlylist add 12.34.56.78
+
+/etc/fail2ban/filter.d
+/etc/fail2ban/action.d
+/etc/fail2ban/jail.d
+
+cat /var/log/hohono.log |cut -d ' ' -f 3,4,5,6,7,8,9 |  sort -u | uniq
+cat /var/log/hohono.log | grep "rejected" |cut -d ' ' -f 5 |  sort -u | uniq
+
+talk here : https://www.youtube.com/watch?v=Fwv2-uV6e5I
+
+/etc/fail2ban/jail.d/ssh.conf
+/etc/fail2ban/jail.local
+
+[sshd]
+enabled = true
+maxretry = 10
+findtime = 15m
+bantime = 1h
+
+sudo service fail2ban restart
+tail -f /var/log/fail2ban.log
+
+/etc/fail2ban/jail.conf
+
+We can create our own file in /etc/fail2ban/filter.d
+
+failregex and ignoreregex
+
+/etc/fail2ban/filter.d/my_filter_name.conf 8.39 min
+[Definition]
+failregex = 
+
+
+8.52 for action 
+
+/etc/fail2ban/jail.d/my_jail.conf 11.23
+
+$ to end the line
+
+help : 
+
+Can you configure Fail2Ban to detect and block the bad IPs?
+
+ * You must monitor for new log entries in /var/log/hohono.log
+ * If an IP generates 10 or more failure messages within an hour then it must
+   be added to the naughty list by running naughtylist add <ip>
+        /root/naughtylist add 12.34.56.78
+ * You can also remove an IP with naughtylist del <ip>
+        /root/naughtylist del 12.34.56.78
+ * You can check which IPs are currently on the naughty list by running
+        /root/naughtylist list
+
+You'll be rewarded if you correctly identify all the malicious IPs with a
+Fail2Ban filter in /etc/fail2ban/filter.d, an action to ban and unban in
+/etc/fail2ban/action.d, and a custom jail in /etc/fail2ban/jail.d. Don't
+add any nice IPs to the naughty list!
+
+COMMANDS
+
+2021-12-15 11:18:22 Invalid heartbeat 'charlie' from 171.104.46.179
+2021-12-15 11:18:12 Failed login from 171.104.46.179 for jewel
+2021-12-15 11:19:36 Login from 154.103.37.179 rejected due to unknown user name
+2021-12-15 13:08:05 131.112.13.154 sent a malformed request
+
+nano /etc/fail2ban/filter.d/my_rules.conf
+fail2ban-regex /var/log/hohono.log /etc/fail2ban/filter.d/my_rules.conf
+
+[Definition]
+failregex = .*Invalid heartbeat 'charlie' from 171.104.46.179*X-Forwarded-For: <HOST>.*
+
+[Definition]
+failregex =  <HOST> .* Invalid
+
+

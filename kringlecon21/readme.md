@@ -1,3 +1,8 @@
+Randomly got in url 
+❄🎁⛄🎄🎅❄
+
+Forsty chilbrain - klatu baradu nikto
+
 # cmdlong - grep challenge
 1. 62078
 2. 8080
@@ -160,6 +165,248 @@ always @(posedge clk) begin
         end
     end
 
+understanding FPGA : https://www.intel.com/content/dam/www/programmable/us/en/pdfs/literature/misc/fpgas-for-dummies-ebook.pdf
+
+```
+`timescale 1ns / 1ps
+
+module tone_generator(
+	input clk,
+	input rst,
+    input [31:0] freq,
+	output wave_out
+);
+
+	// Input clock is 100MHz
+	localparam CLOCK_FREQUENCY = 100000000;
+
+	// Counter for toggling of clock
+	integer counter = 0;
+	
+	reg wave_out_reg = 0;
+	assign wave_out = wave_out_reg;
+
+ always @(posedge clk) begin
+ 
+		if (rst) begin
+			counter <= 8'h00;
+			wave_out_reg	 <= 1'b0;
+		end
+	
+		else begin 
+			
+			// If counter is zero, toggle wave_out_reg 
+			if (counter == 8'h00) begin
+				wave_out_reg <= ~wave_out_reg;
+				
+				// Generate 1Hz Frequency
+				counter <= CLOCK_FREQUENCY/2 - 1;  
+			end 
+			
+			// Else count down
+			else 
+				counter <= counter - 1; 
+			end
+		end
+		
+endmodule
+```
+
+square wave output generated:
+
+```
+// Note: For this lab, we will be working with QRP Corporation's CQC-11 FPGA.
+// The CQC-11 operates with a 125MHz clock.
+// Your design for a tone generator must support the following 
+// inputs/outputs:
+// (NOTE: DO NOT CHANGE THE NAMES. OUR AUTOMATED GRADING TOOL
+// REQUIRES THE USE OF THESE NAMES!)
+// input clk - this will be connected to the 125MHz system clock
+// input rst - this will be connected to the system board's reset bus
+// input freq - a 32 bit integer indicating the required frequency
+//              (0 - 9999.99Hz) formatted as follows:
+//              32'hf1206 or 32'd987654 = 9876.54Hz
+// output wave_out - a square wave output of the desired frequency
+// you can create whatever other variables you need, but remember
+// to initialize them to something!
+
+`timescale 1ns/1ns
+module tone_generator (
+    input clk,
+    input rst,
+    input [31:0] freq,
+    output wave_out
+);
+    // ---- DO NOT CHANGE THE CODE ABOVE THIS LINE ---- 
+    // ---- IT IS NECESSARY FOR AUTOMATED ANALYSIS ----
+    // TODO: Add your code below. 
+    // Remove the following line and add your own implementation. 
+    // Note: It's silly, but it compiles...
+	
+    // 	localparam CLOCK_FREQUENCY = freq;
+
+	// Counter for toggling of clock
+	integer counter = 0;
+
+	reg wave_out_reg = 0;
+	assign wave_out = wave_out_reg;
+
+    always @(posedge clk) begin
+ 
+		if (rst) begin
+			counter <= 32'h00;
+			wave_out_reg	 <= 1'b0;
+		end
+	
+		else begin 
+			// If counter is zero, toggle wave_out_reg 
+			if (counter == 32'h00) begin
+				wave_out_reg <= ~wave_out_reg;
+				
+				// Generate 1Hz Frequency
+				counter <= freq/2 - 1;  
+			end 
+			
+			// Else count down
+			else 
+				counter <= counter - 1; 
+			end
+		end
+		
+endmodule
+```
+
+counter <= freq * 5/2; gives close to 499
+
+Sending code for analysis...
+Verilog parsed cleanly...
+Beginning FPGA simulation. This may take a few seconds...
+Sorry!
+Simulation results indicate a frequency of: 500.0160Hz
+You should be able to generate EXACTLY 500.0000Hz...
+
+// Note: For this lab, we will be working with QRP Corporation's CQC-11 FPGA.
+// The CQC-11 operates with a 125MHz clock.
+// Your design for a tone generator must support the following 
+// inputs/outputs:
+// (NOTE: DO NOT CHANGE THE NAMES. OUR AUTOMATED GRADING TOOL
+// REQUIRES THE USE OF THESE NAMES!)
+// input clk - this will be connected to the 125MHz system clock
+// input rst - this will be connected to the system board's reset bus
+// input freq - a 32 bit integer indicating the required frequency
+//              (0 - 9999.99Hz) formatted as follows:
+//              32'hf1206 or 32'd987654 = 9876.54Hz
+// output wave_out - a square wave output of the desired frequency
+// you can create whatever other variables you need, but remember
+// to initialize them to something!
+```
+`timescale 1ns/1ns
+module tone_generator (
+    input clk,
+    input rst,
+    input [31:0] freq,
+    output wave_out
+);
+    // ---- DO NOT CHANGE THE CODE ABOVE THIS LINE ---- 
+    // ---- IT IS NECESSARY FOR AUTOMATED ANALYSIS ----
+    // TODO: Add your code below. 
+    // Remove the following line and add your own implementation. 
+    // Note: It's silly, but it compiles...
+	
+    // 	localparam CLOCK_FREQUENCY = freq;
+
+	// Counter for toggling of clock
+	integer counter = 0;
+
+	reg wave_out_reg = 0;
+	assign wave_out = wave_out_reg;
+
+    always @(posedge clk) begin
+ 
+		if (rst) begin
+			counter <= 32'h00;
+			wave_out_reg	 <= 1'b0;
+		end
+	
+		else begin 
+			// If counter is zero, toggle wave_out_reg 
+			if (counter == 32'h00) begin
+				wave_out_reg <= ~wave_out_reg;
+				
+				// Generate 1Hz Frequency
+				//counter <= freq/2 - 1;
+				counter <= freq/2 * 5;
+			end 
+			
+			// Else count down
+			else 
+				counter <= counter - 1; 
+			end
+		end
+		
+endmodule
+```
+Sending code for analysis...
+Verilog parsed cleanly...
+Beginning FPGA simulation. This may take a few seconds...
+Sorry!
+Simulation results indicate a frequency of: 499.9960Hz
+You should be able to generate EXACTLY 500.0000Hz...
+
+If $rtoi(real_no * 10) - ($rtoi(real_no) * 10) > 4, add 1
+
+
+`timescale 1ns/1ns
+module tone_generator (
+    input clk,
+    input rst,
+    input [31:0] freq,
+    output wave_out
+);
+    // ---- DO NOT CHANGE THE CODE ABOVE THIS LINE ---- 
+    // ---- IT IS NECESSARY FOR AUTOMATED ANALYSIS ----
+    // TODO: Add your code below. 
+    // Remove the following line and add your own implementation. 
+    // Note: It's silly, but it compiles...
+	
+    // 	localparam CLOCK_FREQUENCY = freq;
+
+	// Counter for toggling of clock
+	integer counter = 0;
+
+	reg wave_out_reg = 0;
+	assign wave_out = wave_out_reg;
+
+    always @(posedge clk) begin
+ 
+		if (rst) begin
+			counter <= 32'h00;
+			wave_out_reg	 <= 1'b0;
+		end
+	
+		else begin 
+			// If counter is zero, toggle wave_out_reg 
+			if (counter == 32'h00) begin
+				wave_out_reg <= ~wave_out_reg;
+				
+				// Generate 1Hz Frequency
+				//counter <= freq/2 - 1;
+				
+				counter <= $rtoi(freq/2 * 5);
+				// if ($rtoi(counter * 10) - ($rtoi(counter) * 10) > 4) begin
+				//     counter <= counter + 1;
+				// end
+			end 
+			
+			// Else count down
+			else 
+				counter <= counter - 1; 
+			end
+		end
+		
+endmodule
+
+
 # printer exploitation
 
 https://printer.kringlecastle.com/
@@ -307,7 +554,7 @@ Flud Hagg Yaqh
 
 Not able to run the same commands, dir buster?
 
-SSRF in file upload lets try and input something out of th eworld in file input
+SSRF in file upload lets try and input something out of theworld in file input
 
 https://apply.jackfrosttower.com/?inputName=s&inputEmail=s@s.c&inputPhone=s&inputField=Crayon%20on%20walls&resumeFile=%22file://images/4.jpg%22&inputWorkSample=file://images/4.jpg&additionalInformation=werwerwer&submit=file://images/4.jpg
 
@@ -669,6 +916,9 @@ failregex = .*Invalid heartbeat 'charlie' from 171.104.46.179*X-Forwarded-For: <
 
 [Definition]
 failregex = .* Invalid .* <HOST> .*$
+
+Not able to configure fail2ban, its just a configuration challenge.
+
 
 
 

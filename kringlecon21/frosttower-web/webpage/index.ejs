@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<!--[if lt IE 7 ]> <html lang="en" class="ie ie6"> <![endif]--> 
+<!--[if IE 7 ]> <html lang="en" class="ie ie7"> <![endif]--> 
+<!--[if IE 8 ]> <html lang="en" class="ie ie8"> <![endif]--> 
+<!--[if IE 9 ]> <html lang="en" class="ie ie9"> <![endif]--> 
+<!--[if !IE]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title><%= title %></title>
+<meta name="description" content="Ace Page under construction">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=PT+Sans+Narrow:regular,bold"> 
+<link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+
+<body id="home">
+
+<div id="Content" class="wrapper topSection">
+    <div id="Header">
+    <div class="wrapper">
+        <div class="logo"><h1>Jack Frost Tower</h1> </div>
+        </div>
+    </div>
+    <h2>Our new site is coming soon!</h2>
+    <strong>Stay tuned for something amazing</strong>   
+<div class="countdown styled"></div>
+</div>
+<div id="subscribe">
+    <h3 id="msg">Stay in touch</h3>
+    <form id="form" onsubmit="return submitForm(this);">
+        <p>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" id="csrf">
+        <input type="email" name="email" id="email" placeholder="Enter your e-mail"/>
+        <input type="submit" value="Submit"/>
+        </p>
+    </form>
+</div>
+
+<!--Scripts-->
+<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script> 
+<script type="text/javascript" src="js/jquery.countdown.js"></script>
+<script type="text/javascript" src="js/global.js"></script>
+<script type="text/javascript" src="js/other.js"></script>
+
+</body>
+</html>

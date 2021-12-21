@@ -1,0 +1,349 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i');
+/* 
+font-family: 'Montserrat', sans-serif; 
+*/
+*{
+	margin:0;
+	padding:0;
+	font-family: 'Montserrat', sans-serif; 
+	font-weight: 400;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    outline: 0;
+}
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #f3f3f3;
+}
+.soft{
+	color:grey;
+	text-decoration: none;
+	font-weight: 500;
+
+}
+.soft:hover{
+	color:#333;
+}
+.text-center{
+	text-align: center;
+	margin-top:20px;
+}
+.wrapcontent{
+	width: 100%;
+	height: 100%;
+}
+.wrapcontent .wrapdtbl{
+	display: table;
+	width: 100%;
+	height: 100%;
+}
+.wrapcontent .wrapdtbl .cell{
+	display: table-cell;
+	width: 100%;
+	height: 100%;
+	vertical-align: middle;
+	padding:30px;
+}
+.wrapcontent .wrapdtbl .cell .inner{
+	width: 600px;
+	display: block;
+	margin:0 auto;
+	background: #fff;
+	padding:25px;
+	box-shadow: 0 9px 20px #c5c5c5;
+}
+.wrapcontent .wrapdtbl .cell .inner h1{
+	font-weight: 700;
+	text-align: center;
+	margin:0 0 25px;
+}
+.wrapcontent .wrapdtbl .cell .inner form label{
+	font-weight: 400;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+.wrapcontent .wrapdtbl .cell .inner form input[type=text],
+.wrapcontent .wrapdtbl .cell .inner form input[type=email],
+.wrapcontent .wrapdtbl .cell .inner form input[type=password],
+.wrapcontent .wrapdtbl .cell .inner form input[type=phone],
+.wrapcontent .wrapdtbl .cell .inner form select{
+	height: 36px;
+	width: 100%;
+	display: block;
+	margin-top:5px;
+	margin-bottom:15px;
+	padding:0 15px;
+	border: 1px solid #d6d6d6;
+	background: transparent;
+}
+.wrapcontent .wrapdtbl .cell .inner form input[type=text]:focus,
+.wrapcontent .wrapdtbl .cell .inner form input[type=email]:focus,
+.wrapcontent .wrapdtbl .cell .inner form input[type=phone]:focus,
+.wrapcontent .wrapdtbl .cell .inner form input[type=password]:focus,
+.wrapcontent .wrapdtbl .cell .inner form select:focus{
+	background: transparent;
+	border-bottom: 1px solid #66ca1b;
+}
+.wrapcontent .wrapdtbl .cell .inner form input[type=submit],
+.wrapcontent .wrapdtbl .cell .inner form button{
+	background: #66ca1b;
+	width: 180px;
+	padding:15px;
+	border-radius: 8px;
+	display: block;
+	margin:0 auto;
+	font-weight: 700;
+	color:#fff;
+	border:none;
+	cursor: pointer;
+}
+.wrapcontent .wrapdtbl .cell .inner form input[type=submit]:hover,
+.wrapcontent .wrapdtbl .cell .inner form button:hover{
+	background: #88ca57;
+}
+.wrapcontent .wrapdtbl .cell .inner p.success{
+	color: #00ca00;
+    margin: 0 0 20px;
+    background: transparent;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    border: 1px solid #00ca00;
+    font-weight: bold;
+}
+.wrapcontent .wrapdtbl .cell .inner .record{
+	text-align: right;
+}
+.wrapcontent .wrapdtbl .cell .inner .record label{
+	font-weight: 700;
+	color: #8c8c8c;
+}
+.wrapcontent .wrapdtbl .cell .inner h3{
+	font-weight: 700;
+	margin:0 0 10px;
+}
+.wrapcontent .wrapdtbl .cell .inner h4{
+	font-weight: 700;
+	margin: 0 0 20px;
+	padding:0;
+	float:right;
+}
+.wrapcontent .wrapdtbl .cell .inner h4 a{
+
+	text-decoration: none;
+	font-weight: 700;
+	color:#fff;
+	display: inline-block;
+	margin-left:5px;
+	background: #6e7dec;
+	padding:4px 8px 4px;
+	border-radius: 4px;
+	font-size: 14px;
+}
+.wrapcontent .wrapdtbl .cell .inner h4 a:hover{
+	background: #919df1;
+}
+.clearfix{
+	clear: both;
+}
+.wrapcontent .wrapdtbl .cell .innerlist{
+	width: 991px;
+	display: block;
+	margin:0 auto;
+	background: #fff;
+	padding:25px;
+	box-shadow: 0 9px 20px #c5c5c5;
+}
+.wrapcontent .wrapdtbl .cell .rowtop{
+	background: transparent;
+	padding:15px 25px;
+}
+.wrapcontent .wrapdtbl .cell .rowtop a{
+	text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    color: #919cf3;
+}
+.wrapcontent .wrapdtbl .cell .rowtop a:hover{
+	color: #6e7dec;
+}
+.wrapcontent .wrapdtbl .cell .rowtop p strong{
+	font-weight: 700;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table{
+	width: 100%;
+	border-collapse: collapse;
+
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr th{
+	font-weight: 700;
+	padding:5px 10px;
+	color:#888888;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr td{
+	font-size: 14px;
+	padding:5px 10px;
+	border:1px solid #e8e8e8;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr:hover{
+	background: #f1f1f1;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr td:last-child{
+	text-align: center;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr td a{
+	text-decoration: none;
+	color: #a1aaec;
+	font-weight: 600;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr td form{
+    display: inline-block;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr td form input[type=submit],
+.wrapcontent .wrapdtbl .cell .innerlist table tr td form button {
+    background: transparent;
+    width: auto;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 0;
+    font-weight: 700;
+    padding:0;
+    color: #a1aaec;
+    border: none;
+    cursor: pointer;
+}
+.wrapcontent .wrapdtbl .cell .innerlist #src input[type=text]{
+	display: inline-block;
+	width: 300px;
+}
+.wrapcontent .wrapdtbl .cell .innerlist #src input[type=submit],
+.wrapcontent .wrapdtbl .cell .innerlist #src button{
+	display: inline-block;
+	background: #c5c5c5;
+    width: 109px;
+    padding: 10px;
+    border-radius: 0;
+    margin: 0 auto;
+    font-weight: 700;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+.wrapcontent .wrapdtbl .cell .innerlist #src input[type=submit]:hover,
+.wrapcontent .wrapdtbl .cell .innerlist #src button:hover{
+	background: #aba9a9;
+}
+
+.wrapcontent .wrapdtbl .cell .innerlist table tr td form input[type=submit]:hover,
+.wrapcontent .wrapdtbl .cell .innerlist table tr td form button:hover {
+	background: transparent;
+    color: #6e7dec;
+}
+.wrapcontent .wrapdtbl .cell .innerlist table tr td a:hover{
+	color:#6e7dec;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul.pagination{
+	text-align: center;
+	margin:25px 0 0;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul.pagination li{
+	display: inline-block;
+    background: #929292;
+    color: #fff;
+    font-weight: 600;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul.pagination li a{
+	color:#fff;
+	padding: 0px 4px;
+	display: block;
+	text-decoration: none;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul.pagination li.active{
+	background: #d2cece;
+	color:#333;
+	padding: 4px 10px;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul.pagination li:hover{
+	background: #d2cece;
+	color:#fff;
+}
+.wrapcontent .wrapdtbl .cell .innerlist form.formexport input[type=submit], 
+.wrapcontent .wrapdtbl .cell .innerlist form.formexport button {
+    background: #66ca1b;
+    width: auto;
+    padding: 5px 8px;
+    border-radius: 4px;
+    display: block;
+    margin: 0;
+    font-weight: 700;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+.wrapcontent .wrapdtbl .cell .innerlist form.formexport input[type=submit]:hover, 
+.wrapcontent .wrapdtbl .cell .innerlist form.formexport button:hover {
+	background-color: #57ab18;
+}
+.wrapcontent .wrapdtbl .cell .innerlist h1{
+    color: #333;
+    padding: 5px;
+    font-size: 26px;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul{
+	margin:25px;
+	padding:0;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul li{
+	padding:5px 8px;
+	border-bottom:1px solid #f3f3f3;
+}
+.wrapcontent .wrapdtbl .cell .innerlist ul li:last-child{
+	border-bottom:1px solid transparent;
+}
+.wrapcontent .wrapdtbl .cell .innerlist .button{
+	text-align: center;
+}
+.wrapcontent .wrapdtbl .cell .innerlist .button a{
+	display: inline-block;
+	margin:0 5px 0 0;
+    text-decoration: none;
+    color: #fff;
+    background: #6e7dec;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+.wrapcontent .wrapdtbl .cell .innerlist .button a:hover {
+    background: #919df1;
+}
+.wrapcontent .wrapdtbl .cell .innerlist .button form{
+	display: inline-block;
+}
+.wrapcontent .wrapdtbl .cell .innerlist .button form input[type=submit],
+.wrapcontent .wrapdtbl .cell .innerlist .button form button {
+    display: inline-block;
+    width: auto;
+    font-weight: 700;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    background: #6e7dec;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 16px;
+    margin:0 5px 0 0;
+}
+.wrapcontent .wrapdtbl .cell .innerlist .button form input[type=submit]:hover,
+.wrapcontent .wrapdtbl .cell .innerlist .button form button:hover {
+	background: #919df1;
+    color: #fff;
+}
+
+@media only screen and (max-width: 1024px){
+	.wrapcontent .wrapdtbl .cell .innerlist,
+	.wrapcontent .wrapdtbl .cell .inner{
+		width: 90%;
+	}
+}

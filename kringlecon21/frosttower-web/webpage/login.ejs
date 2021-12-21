@@ -1,0 +1,39 @@
+<%- include('header'); %>
+
+<div class="wrapcontent">
+        <div class="wrapdtbl">
+            <div class="cell">
+                <div class="inner">
+                    <h1><%= title %></h1>
+
+                    <% if (messages.info) { %>
+                        <p class="success"><%= messages.info %></p>
+                    <% } %>
+
+                    <h4><a href="/contact">BACK TO FORM</a></h4>
+
+                    <div class="clearfix"></div>
+
+                    <form action="/login" method="POST">
+
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                        <label>Username</label>
+                        <input type="text" name="username" autocomplete="off" required>
+
+                        <label>Password</label>
+                        <input type="password" name="password" autocomplete="off" required>
+
+                        <input type="submit" name="submit" value="LOGIN">
+
+                    </form>
+                    <br><br>
+
+                    <p>Forgot your password ? <a href="/forgotpass">recover now</a></p>
+    
+                </div>
+            </div>
+        </div>
+    </div>
+
+<%- include('footer'); %>

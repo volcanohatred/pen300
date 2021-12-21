@@ -1,0 +1,56 @@
+<%- include('header'); %>
+
+    <div class="wrapcontent">
+        <div class="wrapdtbl">
+            <div class="cell">
+                <div class="inner innerlist rowtop">
+                    <p>Hello, <strong><%= userlogin %></strong>  <a href="/logout">[ Logout ]</a></p>
+                </div>
+
+                <div class="inner innerlist">
+                    <h1><%= title %></h1>
+                    
+                    <% if (messages.info) { %>
+                        <p class="success"><%= messages.info %></p>
+                    <% } %>
+
+                    <h4><a href="/dashboard">Dashboard</a></h4>
+
+                    <div class="clearfix"></div>
+
+                    <% encontact.forEach( function( encontact ) { %>
+
+                    <form action="/edit/<%= encontact.id %>" method="POST">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                        <label>Full name</label>
+                        <input type="text" name="fullname" autocomplete="off" value="<%= encontact.full_name %>" required>
+
+                        <label>Email</label>
+                        <input type="text" name="disabled" autocomplete="off" value="<%= encontact.email %>" disabled>
+
+                        <label>Phone</label>
+                        <input type="text" name="phone" autocomplete="off" value="<%= encontact.phone %>" required>
+
+                        <label>Country</label>
+                        <select name="country">
+                            <option>-Select-</option>
+                            <% for(var i=0; i < Object.keys(strcountry).length; i++) { %>
+                                <% var objcountry = strcountry[ Object.keys(strcountry)[i] ] %>
+                                <option value="<%= objcountry %>" <%if (encontact.country == objcountry){%> selected <% } %> ><%= objcountry %></option>
+                            <% } %>
+                        </select>
+                        
+                        <input type="hidden" name="email" autocomplete="off" value="<%= encontact.email %>">
+                        <input type="submit" name="submit" value="Update">
+
+                    </form>
+
+                        <% }) %>
+    
+                </div>
+            </div>
+        </div>
+    </div>
+
+<%- include('footer'); %>

@@ -1,0 +1,32 @@
+<%- include('header'); %>
+
+    <div class="wrapcontent">
+        <div class="wrapdtbl">
+            <div class="cell">
+
+                <div class="inner innerlist">
+                    <h1><%= title %></h1>
+
+                    <form action="/forgotpass/token/<%= token %>" method="POST">
+
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                        <label>Password</label>
+                        <input type="password" name="password" autocomplete="off" value="" required>
+
+                        <label>Re-Password</label>
+                        <input type="password" name="repassword" autocomplete="off" value="" required>
+
+                        <input type="hidden" name="token" value="<%= token %>" required>
+                        <input type="hidden" name="email" value="<%= email %>" required>
+                        
+                        <input type="submit" name="submit" value="Reset password">
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+<%- include('footer'); %>

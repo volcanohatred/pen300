@@ -1,0 +1,58 @@
+<%- include('header'); %>
+
+    <div class="wrapcontent">
+        <div class="wrapdtbl">
+            <div class="cell">
+                <div class="inner">
+                    <h1><%= title %></h1>
+                    
+                    <% if (messages.info) { %>
+                        <p class="success"><%= messages.info %></p>
+                    <% } %>
+
+                    <div class="record">
+                        <label>Total User : <%= rowdata  %></label>
+                    </div>
+
+                    <% if (userlogin) { %>
+                        <h4><a href="/dashboard">Dashboard Admin</a></h4>
+                    <% }else{ %>
+                        <h4><a href="/login">Login Dashboard</a></h4>
+                    <% } %>
+
+                    <div class="clearfix"></div>
+
+                    <form action="/adduser" method="POST">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+                        <label>Name</label>
+                        <input type="text" name="fullname" autocomplete="off" required>
+
+                        <label>Email</label>
+                        <input type="email" name="email" autocomplete="off" required>
+
+                        <label>Password</label>
+                        <input type="password" name="password" autocomplete="off" required>
+
+                        <label>User status</label>
+                        <select name="user_status">
+                            <option>-Select-</option>
+                            <option value="1">Full Administrator</option>
+                            <option value="2">Admin</option>
+                        </select>
+
+                        <input type="submit" name="submit" value="SAVE">
+
+                    </form>
+    
+                </div>
+
+                    <% if (userlogin) { %>
+                        <p class="text-center">Logged as <strong style="font-weight:700;"><%= userlogin %></strong>  <a href="/logout">[ Logout ]</a></p>
+                    <% } %>
+
+            </div>
+        </div>
+    </div>
+
+<%- include('footer'); %>

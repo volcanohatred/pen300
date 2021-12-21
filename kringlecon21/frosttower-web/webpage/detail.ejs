@@ -1,0 +1,56 @@
+<%- include('header'); %>
+
+    <div class="wrapcontent">
+        <div class="wrapdtbl">
+            <div class="cell">
+                <div class="inner innerlist rowtop">
+                    <p>Hello, <strong><%= userlogin %></strong>  
+
+                    <% if (userstatus == 1){ %>
+                        <a href="/logout">[ Logout ]</a> - <a href="/adduser">[ Add User ]</a>
+                    <% } %>
+                    </p>
+                </div>
+
+                <div class="inner innerlist">
+                    <% encontact.forEach( function( encontact ) { %>
+
+                    <h1><%= encontact.full_name %></h1>
+
+                    <ul class="datadetail">
+                        <li><%= encontact.email %></li>
+                        <li><%= encontact.phone %></li>
+                        <li><%= encontact.country %></li>
+                        <li><%= dateFormat(encontact.date_created, "mmmm dS, yyyy h:MM:ss") %></li>
+                        <li>
+                        <% if (encontact.date_update == ""){ %>
+                            -
+                        <% }else { %>
+                            <%= dateFormat(encontact.date_update, "mmmm dS, yyyy h:MM:ss") %>
+                        <% } %>                     
+                        </li>
+                    </ul>
+
+                    <div class="button">
+                        <a href="/edit/<%= encontact.id %>">Edit</a>
+
+                        <% if (userstatus == 1){ %>
+
+                            <form method="POST" action="/delete/<%= encontact.id %>" onsubmit="return confirm('Do you really want to delete the record?');">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="submit" name="submit" value="Delete">
+                            </form>
+
+                        <% } %>
+
+                        <a href="/dashboard">Dashboard</a>
+                    </div>
+
+                    <% }) %>
+                
+                </div>
+            </div>
+        </div>
+    </div>
+
+<%- include('footer'); %>

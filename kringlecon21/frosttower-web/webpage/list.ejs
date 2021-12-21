@@ -1,0 +1,92 @@
+<%- include('header'); %>
+
+    <div class="wrapcontent">
+        <div class="wrapdtbl">
+            <div class="cell">
+                <div class="inner innerlist">
+                    <form method="POST" action="/search" id="src">
+                        <input type="hidden" name="_csrf" value="<%= csrfTokenSearch %>">
+                        <input type="text" name="search" placeholder="Search data" required><input type="submit" name="submit" value="Search">
+                    </form>
+
+                    <h3>Total Contact Listing : <%= totalRecord %></h3>
+                    <h4><a href="/contact">Add Contact</a></h4>
+                    <form method="POST" action="/export" class="formexport">
+                        <input type="hidden" name="_csrf" value="<%= csrfTokenExport %>">
+                        <input type="submit" name="submit" value="Export to Excel">
+                    </form>
+
+                    <div class="clearfix"></div>
+
+                    <% if (messages.info) { %>
+                        <p class="success"><%= messages.info %></p>
+                    <% } %>
+
+                    <table>
+                        <tr>
+                            <th>No</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Date created</th>
+                            <th>#</th>
+                        </tr>
+
+                        <% encontact.forEach( function( encontact ) { %>
+                        <tr>
+                            <td><%= encontact.id %></td>
+                            <td><%= encontact.full_name %></td>
+                            <td><%= encontact.email %></td>
+                            <td><%= encontact.phone %></td>
+                            <td><%= dateFormat(encontact.date_created, "mmmm dS, yyyy") %></td>
+                            <td><a href="/detail/<%= encontact.id %>">Detail</a> | <a href="/edit/<%= encontact.id %>">Edit</a> | 
+                            <form method="POST" action="/delete/<%= encontact.id %>" onsubmit="return confirm('Do you really want to delete the record?');">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="submit" name="submit" value="Delete">
+                            </form>
+                            </td>
+                        <tr>
+                        <% }) %>
+                        
+                    </table>
+
+
+                    <% if (pageCount > 1) { %>  
+                    <ul class="pagination">  
+                      <% if (currentPage > 1) { %>
+                          <li><a href="/list/?page=1">&laquo;</a></li>
+                      <% } %>
+
+                      <% var i = 1;
+                      if (currentPage > 5) {
+                      i = +currentPage - 4;
+                      } %>
+
+                      <% if (i !== 1) { %>
+                          <li class="disabled"><a href="#">...</a></li>
+                      <% } %>
+
+                      <% for (i; i<=pageCount; i++) { %>
+                        <% if (currentPage == i) { %>
+                            <li class="active"><span><%= i %> </span></li>
+                        <% } else { %>
+                            <li><a href="/list/?page=<%= i %>"><%= i %></a></li>
+                        <% } %>
+                        <% if (i == (+currentPage + 4)) { %>
+                            <li class="disabled"><a href="#">...</a></li>
+                        <% break; } %>
+                      <% } %>
+
+
+                      <% if (currentPage != pageCount) { %>
+                          <li><a href="/list/?page=<%= pageCount %>">&raquo;</a></li>
+                      <% } %>
+                    </ul>  
+                    <% } %>  
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+<%- include('footer'); %>

@@ -8,7 +8,7 @@ var bodyParser = require('body-parser');
 var sessions = require('express-session');
 var flash = require('express-flash');
 var cookieParser = require('cookie-parser');
-var dateFormat = require('dateformat');
+// var dateFormat = require('dateformat');
 var app = express();
 var csrf = require('csurf');
 var country = fs.readFileSync("country.json");
@@ -16,9 +16,10 @@ var countrybuf_tostring = JSON.parse(country);
 var nodemailer = require('nodemailer');
 var nodeExcel = require('excel-export');
 var bcrypt = require('bcrypt');
-var randomstring = require("randomstring");
+// var randomstring = require("randomstring");
 var saltRounds = 15;
 var xss = require("xss")
+// npm install --save-dev express path fs mysql body-parser express-session express-flash cookie-parser dateformat csurf nodemailer excel-export bcrypt xss ejs
 
 /**Setup**/
 app.use("/css", express.static(__dirname + "/webpage/stylecss"));
@@ -136,7 +137,8 @@ app.post('/postcontact', function(req, res, next){
     var mo = date.getMonth();
     var yr = date.getFullYear();
     var current_hour = date.getHours();
-    var date_created = dateFormat(date, "yyyy-mm-dd hh:MM:ss");
+    var date_created = data;
+    // dateFormat(date, "yyyy-mm-dd hh:MM:ss");
 
     tempCont.query("SELECT * from uniquecontact where email="+tempCont.escape(email), function(error, rows, fields){
 
@@ -1096,7 +1098,9 @@ app.post('/forgotpass', function(req, res, next){
 
     var email = req.body.email;
     var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-    var token = randomstring.generate();
+    var token = "Ashwin"; 
+
+    // var token = randomstring.generate(); 
 
     if (email != ""){
 

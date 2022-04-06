@@ -1,0 +1,2 @@
+var shell = new ActiveXObject("Wscript.shell");
+var res = shell.Run("chrome.exe");

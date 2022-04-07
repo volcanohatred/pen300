@@ -74,6 +74,17 @@ using https://github.com/tyranid/DotNetToJScript
 
 ![](./DotnetTojs.png)
 
+## using win32 api on C#
+
+![](chash.png)
+
+# shellcode runner in C#
+
+notworking because of shellcode problem
+
+
+
+
 
 
 

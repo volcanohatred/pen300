@@ -199,4 +199,37 @@ ntdll!_TEB
 ```
 
 we have so much information even though what windows tells us is very less.
-s
+
+The most important is PEB - Process environment block.
+
+TEB is always located at [gs] secgment register and ntTib is always located at offset 0
+
+0x00 -> ntTiB
+0x60 -> PEB
+
+Looking at PEB
+
+`dt nt !_PEB`
+
+0x18 -> This is Loader location. PEB_LDR
+
+looking at information inside PEB_LDR location -
+
+`dt nt!_PEB_LDR`
+
+```
+0:000> dt nt!_PEB_LDR_DATA
+ntdll!_PEB_LDR_DATA
+   +0x000 Length           : Uint4B
+   +0x004 Initialized      : UChar
+   +0x008 SsHandle         : Ptr64 Void
+   +0x010 InLoadOrderModuleList : _LIST_ENTRY
+   +0x020 InMemoryOrderModuleList : _LIST_ENTRY
+   +0x030 InInitializationOrderModuleList : _LIST_ENTRY
+   +0x040 EntryInProgress  : Ptr64 Void
+   +0x048 ShutdownInProgress : UChar
+   +0x050 ShutdownThreadId : Ptr64 Void
+
+```
+
+THis pEB_LDR_DATA - containes information about what dll are loaded and when

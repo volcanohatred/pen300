@@ -2,4 +2,4 @@
 
 ![](cff_kernel_32.png)
 
-current timestamp - 7.17 day2_1 video
+current timestamp - 11.15 day2_1 video

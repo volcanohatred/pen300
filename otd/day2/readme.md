@@ -704,7 +704,49 @@ and call the typecaster function pointer
 
 attempt this program
 
+# side not on dll injection vs Reflective dll injection
+
+1. dll injection mean hijacking the normal dll path so that you can run your own dll instead of the intended dll
+
+2. In reflective dll injection you map the dll into memory so that you can call it on runtime through a loader without using loadlibraryA calls (which may lead to detection)
+
+3. process injection is loading your dll into the memory space of an already running process
+
 ## loading the structures
+
+looking at cff explorer 
+
+we find that once we know the address of kernel 32 then
+
+![](saving_in_kernel32.png)
+
+when loading the file header it starts with 5A4D
+word is 2 bytes
+
+if we traverse the address space we go from Dosheader to Ntheader to file header to optional headerthen setion headers
+
+we can look at the offset of any of the section of the PE.
+
+export directory RVA resides inside .rdata
+
+in data directory you will get export directory RVA
+
+the size of each section = size of the parameter values of optional header + size of optional header.
+
+We just need to find out where export directory lies
+
+then we look at the start address of the section, look at the size of each section to find where export directory actually lies
+
+file offset = exprt_RVA - V_A_start_of_section + Raw_base_address
+same for any functions
+
+
+
+
+
+
+
+
 
 
 

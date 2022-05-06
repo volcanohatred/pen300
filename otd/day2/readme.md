@@ -744,6 +744,43 @@ same for any functions
 
 ![](message_box.png)
 
+https://andreafortuna.org/2017/12/08/what-is-reflective-dll-injection-and-how-can-be-detected/
+## What is Reflective DLL Injection and how can be detected?
+Dec 8, 2017
+
+DLL (Dynamic-link library) are the Microsoft's implementation of the shared library concept and provide a mechanism for shared code and data, allowing a developer of shared code/data to upgrade functionality without requiring applications to be re-linked or re-compiled.
+
+DLLs may be explicitly loaded at run-time, a process referred to simply as run-time dynamic linking by Microsoft, and its code is usually shared among all the processes that use the same DLL.
+
+When you need to load a DLL in Windows, you need to call LoadLibrary, that takes the file path of a DLL and loads it in to memory.
+
+This method can also used to perform a DLL injection, that inserts code in the context of another process by causing the other process to load and execute code.
+
+The code is inserted in the form of a DLL, since DLLs are meant to be loaded at run time.
+Running code in the context of another process provides adversaries many benefits, such as access to the process's memory and permissions.
+
+It also allows adversaries to mask their actions under a legitimate process.
+
+Reflective?
+Reflective DLL loading refers to loading a DLL from memory rather than from disk.
+
+Windows doesn’t have a LoadLibrary function that supports this, so to get the functionality you have to write your own, omitting some of the things Windows normally does, such as registering the DLL as a loaded module in the process , potentially bypassing DLL load monitoring.
+
+The process of reflective DLL injection is as follows:
+
+Open target process with read-write-execute permissions and allocate memory large enough for the DLL.
+Copy the DLL into the allocated memory space.
+Calculate the memory    within the DLL to the export used for doing reflective loading.
+Call CreateRemoteThread (or an equivalent undocumented API function like RtlCreateUserThread) to start execution in the remote process, using the offset address of the reflective loader function as the entry point.
+The reflective loader function finds the Process Environment Block of the target process using the appropriate CPU register, and uses that to find the address in memory of kernel32.dll and any other required libraries.
+Parse the exports directory of kernel32 to find the memory addresses of required API functions such as LoadLibraryA, GetProcAddress, and VirtualAlloc.
+Use these functions to then properly load the DLL (itself) into memory and call its entry point, DllMain.
+
+the loader header in (reflective_dll_loader_header.h)
+
+
+
+
 
 
 

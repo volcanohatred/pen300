@@ -2,4 +2,4 @@
 
 ![](cff_kernel_32.png)
 
-current timestamp - 01:43 day2_1 video
+current timestamp - day2_1 completed

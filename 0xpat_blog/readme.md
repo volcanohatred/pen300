@@ -7,7 +7,7 @@ Component Object Model is a Windows binary interface for inter-process communica
 
 He enumerated com objects with powershell.
 
-## Malware development basics part 1
+# Malware development basics part 1
 
 Windows shellcodes usually use TEB (Thread Environment Block) and PEB (Process Environment Block) to find address of loaded system libraries (kernel32.dll, kernelbase.dll or ntdll.dll) and then “browse” them to find addresses of LoadLibrary and GetProcAddress functions which then can be used to locate other functions.
 
@@ -63,6 +63,15 @@ makecert -r -pe -n "CN=Malwr CA" -ss CA -sr CurrentUser -a sha256 -cy authority 
 New-SelfSignedCertificate -Subject "CN=Neware CA,"
 
 Tried the powershell command but it is too much work.makecert requires windows sdk
+
+# Malware development part 2 - anti dunamic analysis and sandboxes
+
+Hardware resources
+
+Devices and vendor names
+
+
+
 
 
 

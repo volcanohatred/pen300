@@ -53,6 +53,8 @@ We can try the simplest “encryption” - apply ROT13 cipher to all bytes of em
 
 however it might not help;
 
+can I even try and reverse a string?
+
 ## signing the binary
 
 using makecert though its old we ise New-SelfSignedCertificate.
@@ -68,7 +70,13 @@ Tried the powershell command but it is too much work.makecert requires windows s
 
 Hardware resources
 
+
 Devices and vendor names
+
+
+# trying to reverse shellcode
+
+//ⁿΦé
 
 
 

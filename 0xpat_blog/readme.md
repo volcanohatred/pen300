@@ -66,9 +66,50 @@ Tried the powershell command but it is too much work.makecert requires windows s
 
 # Malware development part 2 - anti dunamic analysis and sandboxes
 
-Hardware resources
+## Hardware resources - working but virus total detection
+The main problem are limited resources - a sandbox may not be able to run long and consuming simulations in parallel so is often restricts resources commited and time allocated for a single instance. Regular VM boxes used by analysts are also subject for same constraints - they often have their resources limited.
+evading_edr_hardware_checks.c
 
-Devices and vendor names
+## Devices and vendor names - not working
+n default VM installations devices often have predictable names, for example containing strings associated with the specific hypervisor. We can check for hard drive name, optical disk drive name, BIOS version, computer manufacturer and model name, graphics controller name etc. Relevant information can be retrieved with WMI queries (check properties like “Name”, “Description”, “Caption”)
+evading_edr_vmware_checks.c
+
+## Looking for virtial devices - not working
+We can also look for specific virtual devices that would not be present in a typical host system, like pipes and other interfaces used for guest-host communication:
+evading_edr_virtual_machine.c
+
+## enumerating network devices - not working
+e should also pay attention to network devices. Especially MAC addresses can indicate presence of a virtual environment since first 3 bytes are manufacturer identificator by default. Let’s iterate all available network adapters and compare first bytes with well-known values
+
+```c
+DWORD adaptersListSize = 0;
+	GetAdaptersAddresses(AF_UNSPEC, 0, 0, 0, &adaptersListSize);
+	IP_ADAPTER_ADDRESSES* pAdaptersAddresses = (IP_ADAPTER_ADDRESSES*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, adaptersListSize);
+	if (pAdaptersAddresses)
+	{
+		GetAdaptersAddresses(AF_UNSPEC, 0, 0, pAdaptersAddresses, &adaptersListSize);
+		char mac[6] = { 0 };
+		while (pAdaptersAddresses)
+		{
+			if (pAdaptersAddresses->PhysicalAddressLength == 6)
+			{
+				memcpy(mac, pAdaptersAddresses->PhysicalAddress, 6);
+				if (!memcmp({ "\x08\x00\x27" }, mac, 3)) return false;
+			}
+			pAdaptersAddresses = pAdaptersAddresses->Next;
+		}
+	}
+```
+
+not able to get correct way to use #inlcude here
+
+## VM specific artifacts
+
+ere are also specific artifacts present on virtualized environments - files and registry entries indicating presence of a hypervisor. We can check for files and directories associated with drivers, devices and modules provided by the hypervisor and registry keys and values containing configurations or hardware description.
+
+List of directories worth checking for these artifacts include C:\Windows\System32 and C:\Windows\System32\Drivers. Interesting registry keys are HKLM\SYSTEM\ControlSet001\Services, HKLM\HARDWARE\Description\System, HKLM\SYSTEM\CurrentControlSet\Control\SystemInformation and others.
+
+
 
 
 

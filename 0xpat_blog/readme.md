@@ -53,6 +53,8 @@ We can try the simplest “encryption” - apply ROT13 cipher to all bytes of em
 
 however it might not help;
 
+can I even try and reverse a string?
+
 ## signing the binary
 
 using makecert though its old we ise New-SelfSignedCertificate.
@@ -110,6 +112,12 @@ ere are also specific artifacts present on virtualized environments - files and 
 List of directories worth checking for these artifacts include C:\Windows\System32 and C:\Windows\System32\Drivers. Interesting registry keys are HKLM\SYSTEM\ControlSet001\Services, HKLM\HARDWARE\Description\System, HKLM\SYSTEM\CurrentControlSet\Control\SystemInformation and others.
 
 
+Devices and vendor names
+
+
+# trying to reverse shellcode
+
+//ⁿΦé
 
 
 

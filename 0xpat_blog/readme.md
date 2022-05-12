@@ -117,7 +117,10 @@ Devices and vendor names
 
 # trying to reverse shellcode
 
-//ⁿΦé
+at website_code_xor.c
+and xor_reverse.py
+
+
 
 
 

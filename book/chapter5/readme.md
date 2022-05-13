@@ -1,58 +1,70 @@
 http://www.pinvoke.net/
 
+page - 131
+
 # Process Injection
 
-This is the reference to any .net reference for visual studio.
-
-When obtaining a reverse shell, be it a Meterpreter, regular command shell, or a shell from 
-another framework, it must execute within a process. A typical shellcode runner (like those we 
-developed in Microsoft Word, PowerShell, and Jscript) executes the shell inside its own process.
-There are potential issues with this approach. First, the victim may close the application, which 
-could shut down our shell. Second, security software may detect network communication from a 
-process that normally doesn’t generate it and block our shell.
-One way to overcome these challenges is with process injection or process migration. In this 
-module, we’ll discuss these concepts and demonstrate various implementation techniques.
+We are going to inject our shellcode to various processses to make it work.
 
 ## finding a home for shellcode 
 
-To extend the longevity of our implant, we can execute it in a process that is unlikely to terminate.
-One such process is explorer.exe, which is responsible for hosting the user’s desktop experience. 
-We could also inject into a new hidden process like notepad.exe, or we could migrate to a process 
-like svchost.exe that performs network communication
+We can run our shellcode either in an unlikely to terminate process like explorer.exe 
+or start a hidden process notepad.exe
+or we migrate to a process like svchost.exe
 
 Process vs thread
 
-By definition, a process is a container that is created to house a running application. Each 
-Windows process maintains its own virtual memory space. Although these spaces are not meant 
-to directly interact with one another, we may be able to accomplish this with various Win32 APIs.
-On the other hand, a thread executes the compiled assembly code of the application. A process 
-may have multiple threads to perform simultaneous actions and each thread will have its own 
-stack and shares the virtual memory space of the process
+A process has its own virtual memory space, and this space isnot meant to directly interact with other applications.
 
-OpenProcess to open a process
-VirtualAllocEx to allocate virtual memory
-WriteProcessMemory to write to the allocated space
-CreateRemoteThread to execute thread under the remote process
+Thread executes the compiled assembly code of an application. Each thread has its own memory stack.
 
-We will discuss these APIs in more detail in the next section, but we need to take a moment to 
-discuss security permissions. The OpenProcess API opens an existing local process for 
-interaction and must be supplied with three parameters. The first argument, dwDesiredAccess, 
-establishes the access rights245 we require on that process. Let’s take a moment to discuss these 
-access rights.
-To call OpenProcess successfully, our current process must possess the appropriate security 
-permissions. Every process has a Security Descriptor246 that specifies the file permissions of the 
-executable and access rights of a user or group, originating from the creator of the process. This 
-can effectively block privilege elevation.
-All processes also have an Integrity level247 that restricts access to it. This works by blocking 
-access from one process to another that has a higher Integrity level, however accessing a 
-process with a lower Integrity level is generally possible.
 
-opening notepad properties as user from procexp
-difference in integrity level: 
+We will try to open one process from another using Win32 OpenProcess API.
+
+We will modify its memory space using VirtualAllocEx, and WriteProcessMemory and start process with CreateRemoteThread.
+
+### Openprocess API 
+
+opens an existing process and needs 3 parameters. dwDesiredAccess establishes the access rights we require on that process. bInheritHandle - this determines if the handle can be inherited by a child process. dwProcessId - This is the process Id of the remote process.
+
+Integrity level concept: We can access a process with lower integrity level from a higher intergrity level.
+
+VirtualAllocEx - this is used to allocate memory to our shellcode to a remote process
+
+```c#
+LPVOID VirtualAllocEx(
+ HANDLE hProcess, // handle to process
+ LPVOID lpAddress, // starting address of memory to wrtie our injected instructions
+if the address mentioned is already in use then execution will fail so better to pass NULL
+ SIZE_T dwSize, // size of allocation we will set as 0x1000
+ DWORD flAllocationType,// MEM_COMMIT and MEM_RESERVE 0x3000
+ DWORD flProtect // 0x40 PAGE_EXECUTE_READWRITE
+)
+```
+
+WriteProcessMemory - We can copy data to remote process. (RTLMoveMemory doesn't support this.)
+
+
+```C#
+[DllImport("kernel32.dll")]
+static extern bool WriteProcessMemory(
+     IntPtr hProcess,// process handle
+     IntPtr lpBaseAddress,/// newly allocated memory address 
+     byte[] lpBuffer,// address of bytearray containing the shell code
+     Int32 nSize,// size of shellcode
+     out IntPtr lpNumberOfBytesWritten // a pointers to memory localtion to output how much data was copied
+);
+```
+
+to get shellcode use msfvenom
+
+CreateRemoteThread - as we cannot just call CreateThread.
 
 ![](notepad_permissions.png)
 
 ### creating a code based injection
+
+
 
 ```
 unsigned char buf[] =                                                                                                                                                                                                                    

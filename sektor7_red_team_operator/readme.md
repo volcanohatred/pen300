@@ -36,8 +36,15 @@ to put in `.rsrc` section,  we need to use certain api calls to call the shellco
 
 our variable ended in the data section because we delared it as a global variable.
 
+
+![](control_to_debugger.png)
+
 looking at the address
 38a000 addr of payload
 7d0000 exec memory address
+
+Address  Data       
+00940001 90 90 CC C3
+00B63019 90 90 CC C3
 
 

@@ -36,7 +36,6 @@ to put in `.rsrc` section,  we need to use certain api calls to call the shellco
 
 our variable ended in the data section because we delared it as a global variable.
 
-
 ![](control_to_debugger.png)
 
 looking at the address

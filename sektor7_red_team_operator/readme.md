@@ -180,3 +180,4 @@ from our process we put the shellcode in some target process like explorer.exe
 
 you allocate memory and then execute shellcode.
 
+not able to write the shellcode properly with aes.

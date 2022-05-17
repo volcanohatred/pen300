@@ -144,6 +144,7 @@ methods -
 
 ### video 17
 
+fully done in 
 backdooring putty -
 
 attach the exe to the debugger and look in text section for empty spaces like 000
@@ -170,4 +171,12 @@ call that brings up calculator - 62197DE | E8 87FFFFFF              | call comct
 
 it is not working th epatching is not happening properly for the executed program, even after saving patches calculator is not called.
 need to try it in the ovf tommorrow.
+
+### video 18
+
+code injection
+
+from our process we put the shellcode in some target process like explorer.exe 
+
+you allocate memory and then execute shellcode.
 

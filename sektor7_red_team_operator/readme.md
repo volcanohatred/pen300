@@ -268,3 +268,16 @@ unsigned char buf[] =
 
 compile.dat used - `cl.exe /nologo /Ox /MT /W0 /GS- /DNDEBUG stand_in.cpp /link /OUT:implant.exe /SUBSYSTEM:CONSOLE /MACHINE:x64`
 
+### process injection
+
+able to get calc from nslookup
+
+![](calc_from_ns_lookup.png)
+
+# Things to learn and do
+
+1. How to eliminate null characters from shellcode.
+2. How to integrate all for complete evasion.
+
+3. `process_injection_self_written.c` not working
+

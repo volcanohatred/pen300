@@ -269,7 +269,9 @@ unsigned char buf[] =
 compile.dat used - `cl.exe /nologo /Ox /MT /W0 /GS- /DNDEBUG stand_in.cpp /link /OUT:implant.exe /SUBSYSTEM:CONSOLE /MACHINE:x64`
 
 3. `process_injection_self_written.c` not working - the reason it was not working was because i was trying to inject a 64 bit notepad with a 64 bit comipler.
-
+ 
+ now on calling create remotethread caclc is exiting.
+ 
 
 ### process injection
 

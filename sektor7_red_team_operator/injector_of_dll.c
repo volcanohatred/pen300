@@ -2,17 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <tlhelp32.h>
-#include <iostream>
 
+#include <wchar.h>
+#include <iostream>
+#include <TlHelp32.h>
 using namespace std;
 
-int FindTarget(const char* procname) {
+int FindTarget(const wchar_t* procname) {
 	HANDLE hProcSnap;
 	PROCESSENTRY32 pe32;
 	int pid = 0;
 
-	hProcSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	hProcSnap = CreateToolhelp32Snapshot(0x00000002, 0); // for some reason TH32CS_SNAPPROCESS is not working
 	if (INVALID_HANDLE_VALUE == hProcSnap) {
 		cout << "\n" << "CreateToolhelp32Snapshot failed." << "\n";
 	}
@@ -25,7 +26,7 @@ int FindTarget(const char* procname) {
 	}
 
 	while (Process32Next(hProcSnap, &pe32)) {
-		if (lstrcmpiA(procname, pe32.szExeFile) == 0) {
+		if (wcscmp(procname, pe32.szExeFile) == 0) {
 			pid = pe32.th32ProcessID;
 			break;
 		}
@@ -41,9 +42,11 @@ int main(int argc, char* argv[]) {
 	PVOID remBuf;
 	PTHREAD_START_ROUTINE pLoadLibrary = NULL;
 	char dll[] = "standin_dll.dll";
-	char target[] = "notepad.exe";
+	const wchar_t* target = L"notepad.exe";
 
 	int pid = 0;
+
+	cout << "\n" << "pid : " << pid << "\n";
 
 	pid = FindTarget(target);
 	if (pid == 0) {
@@ -60,10 +63,10 @@ int main(int argc, char* argv[]) {
 		remBuf = VirtualAllocEx(pHandle, NULL, sizeof dll, MEM_COMMIT, PAGE_READWRITE);
 		WriteProcessMemory(pHandle, remBuf, (LPVOID)dll, sizeof(dll), NULL);
 		CreateRemoteThread(pHandle, NULL, 0, pLoadLibrary, remBuf, 0, NULL);
-		printf("done!\rembuff addr = %p\n",remBuf);
+		printf("done!\rembuff addr = %p\n", remBuf);
 
 		CloseHandle(pHandle);
 
 	}
-	  
+
 }

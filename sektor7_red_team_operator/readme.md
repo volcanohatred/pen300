@@ -279,10 +279,27 @@ able to get calc from nslookup
 
 ![](calc_from_ns_lookup.png)
 
+
+### video 20
+
+Explains DLL injecction we will load the path to the DLL and then load the DLL into memory.
+
+### video 21
+
+Get loadlibrary address from dropper.exe with GetProcAddress
+VirtualALLocEx in outlook.exe
+WriteProcessMemory with path to DLL
+CreateRemoteThread with an address f lOadlibrary and path to DLL
+
+for this we need two things - code to be injected 
+and code that injects
+
+
+
+
 # Things to learn and do
 
 1. How to eliminate null characters from shellcode.
 2. How to integrate all for complete evasion.
 
-
-
+4. signing through metatwin and carboncopy - for signature

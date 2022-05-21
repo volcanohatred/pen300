@@ -21,3 +21,22 @@ Next to do - look at how disassembly works
 ![](https://2603957456-files.gitbook.io/~/files/v0/b/gitbook-legacy-files/o/assets%2F-LFEMnER3fywgFHoroYn%2F-LjB_qkyhCQvQXmTWkaq%2F-LjBgbyzlmx2SIrGuGIk%2Fsyscall-debugging.gif?alt=media&token=a66279aa-f0d6-426c-bfeb-c95c8896aabb)
 
 nt create file is not making a file currently.
+
+# Full DLL Unhooking with C++
+https://www.ired.team/offensive-security/defense-evasion/how-to-unhook-a-dll-using-c++
+
+It's possible to completely unhook any given DLL loaded in memory, by reading the .text section of ntdll.dll from disk and putting it on top of the .text section of the ntdll.dll that is mapped in memory. 
+
+### overview
+
+The process for unhooking a DLL is as follows. 
+
+Map a fresh copy of ntdll.dll from disk to process memory
+Find virtual address of the .text section of the hooked ntdll.dll
+    get ntdll.dll base address
+    module base address + module's .text section VirtualAddress
+Find virtual address of the .text section of the freshly mapped ntdll.dll
+Get original memory protections of the hooked module's .text section
+Copy .text section from the freshly mapped dll to the virtual address (found in step 3) of the original (hooked) ntdll.dll - this is the meat of the unhooking as all hooked bytes get overwritten with fresh ones from the disk
+Apply original memory protections to the freshly unhooked .text section of the original ntdll.dll
+

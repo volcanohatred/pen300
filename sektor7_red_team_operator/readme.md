@@ -294,6 +294,10 @@ CreateRemoteThread with an address f lOadlibrary and path to DLL
 for this we need two things - code to be injected 
 and code that injects
 
+# doing something that combines all payloads
+
+1. create custom functions for all of em.
+2. 
 
 
 

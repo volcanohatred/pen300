@@ -297,7 +297,9 @@ and code that injects
 # doing something that combines all payloads
 
 1. create custom functions for all of em.
-2. 
+
+: 192.168.203.136
+192.168.203.129  
 
 
 

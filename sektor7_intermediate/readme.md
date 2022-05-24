@@ -43,7 +43,9 @@ typedef struct IMAGE_IMPORT_DESCRIPTOR {
     DWORD FirstThunk;               //RVA of imported address tbl 
 } IMAGE_IMPORT_DESCRIPTOR;
 
-all of them can be found in wininit.h
+all of them can be found in winnt.h
+ 
+need to go back to this.
 
 
 

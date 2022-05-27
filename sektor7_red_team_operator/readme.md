@@ -341,4 +341,13 @@ tried adding injection but notepad simply exits.
 
 now notepad doesnt exist however it is still not calling th evalid shellcode to the other side.
 
+not able to do process injection with 64 bit program.
 
+The error was sbecause of visual studio error.
+https://stackoverflow.com/questions/3563756/fatal-error-lnk1112-module-machine-type-x64-conflicts-with-target-machine-typ
+
+Still unresolved.
+
+So alternatively used the cl.exe independently of visual studio.
+
+trying to manipulate strings presently.

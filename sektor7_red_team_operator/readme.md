@@ -351,3 +351,5 @@ Still unresolved.
 So alternatively used the cl.exe independently of visual studio.
 
 trying to manipulate strings presently.
+
+https://www.varonis.com/blog/windows-defender-turned-off-by-group-policy

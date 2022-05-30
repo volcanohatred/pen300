@@ -55,8 +55,9 @@ whenever the dll is loaded into memory it will look for imports in the import lo
 
 firstthunk points ot import address table
 
+in pe bear you can look at any process, in imports tab you can look at the what dlls are loaded and then in those dll you can look at firstthunk to look at the lookup table address.
 
-
+ 
 ```
 typedef struct IMAGE_IMPORT_DESCRIPTOR {
     union {

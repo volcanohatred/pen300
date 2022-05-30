@@ -7,10 +7,10 @@
 
 # video 4
 
-How a loader finds the function exported by a dll.
+Lookinng at the functions exported by a dll.
 
-Loader gets the PE header of the dll, gets to the export directory
-
+Loader gets the PE header information of the dll, gets to the export directory
+```
 typedef struct _IMAGE_EXPORT_DIRECTORY {
     DWORD characteristics;
     DWORD TimeDateStamp;
@@ -27,17 +27,29 @@ typedef struct _IMAGE_EXPORT_DIRECTORY {
 
 } IMAGE_EXPORT_DIRECTORY, *PIMAGE_EXPORT_DIRECTORY
 
-
+```
 in order to find the an exported function
 
 we loop around AddressOfNames, find the string that matches, then look at the index of the string, check the address at the index in AddressOfNameOrdinals and go to the address in address of functions.
+
+addressOfNamedOrdinals contains the address of the where the particular function is loaded.  
 
 ### looking at kernel32 with PE Bear
 
 optional header, data directory, export functions
 
+if you go to the address pointed by rhe export directory, then at that location you will find the strings.
+![](kernel32_String.png)
+
+We can look at exports to see everything parsed.
+
+withou using pe bear we can also use dumpbin
+`dumpbin /exports C:/Windows/System32/kernel32.dll`
+  
+
 # video 5
 
+```
 typedef struct IMAGE_IMPORT_DESCRIPTOR {
     union {
         DWORD Characteristics;
@@ -49,15 +61,16 @@ typedef struct IMAGE_IMPORT_DESCRIPTOR {
     DWORD Name;                     // name of imported dll
     DWORD FirstThunk;               //RVA of imported address tbl 
 } IMAGE_IMPORT_DESCRIPTOR;
+```
 
 all of them can be found in winnt.h
  
 need to go back to this.
 
 Things to try
-try using array method to hide the function name
-add vm check
-use process injection
+try using array method to hide the function name - tried
+add vm check - not checked
+use process injection - this worked
 
 
 

@@ -44,10 +44,18 @@ if you go to the address pointed by rhe export directory, then at that location 
 We can look at exports to see everything parsed.
 
 withou using pe bear we can also use dumpbin
-`dumpbin /exports C:/Windows/System32/kernel32.dll`
+`dumpbin /exports C:/Windows/System32/kernel32.dll `
   
 
 # video 5
+
+The relationship between import lookup table > hint name  < import address table
+
+whenever the dll is loaded into memory it will look for imports in the import lookup table and then look at hints wheneveer the function is found it updates address in import address table. its a bit confusing in video actually.
+
+firstthunk points ot import address table
+
+
 
 ```
 typedef struct IMAGE_IMPORT_DESCRIPTOR {

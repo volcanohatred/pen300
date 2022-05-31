@@ -76,11 +76,21 @@ all of them can be found in winnt.h
  
 need to go back to this.
 
+# video 6
+
 Things to try
 try using array method to hide the function name - tried
 add vm check - not checked
 use process injection - this worked
 
+The problem was with the way the functions we were trying to define virtually- done
+
+starter code is ready
+
+Now we need to define our own functions for getprocaddress and gemodulehandle.
+
+TEB and PEB is discussed in getting getting handle to module
+in wininternl.h
 
 
 

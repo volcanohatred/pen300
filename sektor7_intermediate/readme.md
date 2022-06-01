@@ -112,4 +112,40 @@ captial L is for unicode strings.
 
 The program works but is very complex.
 
+# video 7  
+
+Gerprocaddress and Gemodule handle would still be in our import tables as other functions use it
+in order to avoid it we put in a pragma comment to our code such that the entrypoint is winmain.
+
+using dumpbin you will see that there are no exports or imports.
+
+however in helpers.cpp we still use certain functions. in order to not use them as well we can
+1. get the getprocaddress and gemoduleHandle first and then resolve rest of functions
+2. make an implementation of your own
+
+when you directly put the winmain it gives you multiple errors
+
+```
+C:\Users\WIN10RED\Documents\pen300\sektor7_intermediate>compile.bat
+helpers.cpp
+starter_code.cpp
+Generating Code...
+helpers.obj : error LNK2019: unresolved external symbol strchr referenced in function "__int64 (__cdecl*__cdecl hlpGetProcAddress(struct HINSTANCE__ *,char *))(void)" (?hlpGetProcAddress@@YAP6A_JXZPEAUHINSTANCE__@@PEAD@Z)
+helpers.obj : error LNK2019: unresolved external symbol _strdup referenced in function "__int64 (__cdecl*__cdecl hlpGetProcAddress(struct HINSTANCE__ *,char *))(void)" (?hlpGetProcAddress@@YAP6A_JXZPEAUHINSTANCE__@@PEAD@Z)
+helpers.obj : error LNK2019: unresolved external symbol __imp_lstrcmpiW referenced in function "struct HINSTANCE__ * __cdecl hlpGetModuleHandle(wchar_t const *)" (?hlpGetModuleHandle@@YAPEAUHINSTANCE__@@PEB_W@Z)
+helpers.obj : error LNK2019: unresolved external symbol free referenced in function "__int64 (__cdecl*__cdecl hlpGetProcAddress(struct HINSTANCE__ *,char *))(void)" (?hlpGetProcAddress@@YAP6A_JXZPEAUHINSTANCE__@@PEAD@Z)
+starter_code.obj : error LNK2019: unresolved external symbol __imp_WaitForSingleObject referenced in function WinMain
+starter_code.obj : error LNK2019: unresolved external symbol __imp_CreateThread referenced in function WinMain
+starter_code.obj : error LNK2019: unresolved external symbol __imp_VirtualProtect referenced in function WinMain
+starter_code.obj : error LNK2019: unresolved external symbol __acrt_iob_func referenced in function printf
+starter_code.obj : error LNK2019: unresolved external symbol __stdio_common_vfprintf referenced in function _vfprintf_l
+implant.exe : fatal error LNK1120: 9 unresolved externals
+```
+after removing all references with typedef
+
+![](no_imports.png)
+
+after using payload
+
+![](all_imports.png)
 

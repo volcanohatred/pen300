@@ -1,9 +1,6 @@
 #include "PEstructs.h"
 #include "helpers.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 
 typedef HMODULE (WINAPI * LoadLibrary_t)(LPCSTR lpFileName);
 LoadLibrary_t pLoadLibraryA = NULL;
@@ -34,7 +31,7 @@ HMODULE WINAPI hlpGetModuleHandle(LPCWSTR sModuleName) {
     {
         LDR_DATA_TABLE_ENTRY * pEntry = (LDR_DATA_TABLE_ENTRY *) ((BYTE *) pListEntry - sizeof(LIST_ENTRY)) ;     
 
-        if(strcmp((const char *)pEntry->BaseDllName.Buffer, (const char *)sModuleName)==0)
+        if(lstrcmpiW(pEntry->BaseDllName.Buffer, sModuleName)==0)
             return (HMODULE) pEntry->DllBase;            
     }
 
@@ -86,6 +83,30 @@ FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
            }
        }
    }
+
+   //check if found VA is forwarded to external library function
+
+   if((char *) pProcAddr >= (char *)pExportDirAddr && 
+        (char *)pProcAddr < (char *) (pExportDirAddr + pExportDataDir-> Size)){
+            char * sFwdDLL = _strdup((char *)pProcAddr);
+            if(!sFwdDLL) return NULL;
+
+            // get exeteranl function name
+            char * sFwdFunction = strchr(sFwdDLL, '.');
+            *sFwdFunction = 0;
+            sFwdFunction++;
+
+            if(pLoadLibraryA == NULL){
+                pLoadLibraryA = (LoadLibrary_t) hlpGetProcAddress(hlpGetModuleHandle(L"KERNEL32.DLL"), "LoadLibraryA");
+                if (pLoadLibraryA == NULL) return NULL;
+            }
+
+            HMODULE hFwd = pLoadLibraryA(sFwdDLL);
+            free(sFwdDLL);
+            if(!hFwd) return NULL;
+
+            pProcAddr = hlpGetProcAddress(hFwd, sFwdFunction);
+        }
 
     return (FARPROC) pProcAddr;
 }

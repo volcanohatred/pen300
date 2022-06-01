@@ -16,4 +16,12 @@ https://github.com/samet-g/tornado/blob/main/tornado/core/undetectable.py
 
 The undetectable payload used was xor and uptick
 
-s
+## Follina cve 2022
+
+https://github.com/chvancooten/follina.py
+
+Dont have word to verify however it is opening up troubleshooting wizrd.
+
+![](web1.png)
+
+![](web2.png)

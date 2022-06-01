@@ -110,4 +110,6 @@ in dt _Teb at offset 0x60 we have pointer to _   PEB
 
 captial L is for unicode strings.
 
+The program works but is very complex.
+
 

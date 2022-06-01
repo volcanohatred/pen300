@@ -1,6 +1,6 @@
 #include "PEstructs.h"
 #include "helpers.h"
-#include <studio.h>
+#include <stdio.h>
 
 typedef HMODULE (WINAPI * LoadLibrary_t)(LPCSTR lpFileName);
 LoadLibrary_t pLoadLibraryA = NULL;
@@ -26,12 +26,12 @@ HMODULE WINAPI hlpGetModuleHandle(LPCWSTR sModuleName) {
     LIST_ENTRY * pStartListEntry = ModuleList->Flink;
 
     for(LIST_ENTRY * pListEntry = pStartListEntry;
-                     pListEntry != ModuleLust;
+                     pListEntry != ModuleList;
                      pListEntry = pListEntry->Flink)
     {
         LDR_DATA_TABLE_ENTRY * pEntry = (LDR_DATA_TABLE_ENTRY *) ((BYTE *) pListEntry - sizeof(LIST_ENTRY)) ;     
 
-        if(lstrcmpi(pEntry->BaseDllName.Buffer, sModuleName)==0)
+        if(lstrcmpiW(pEntry->BaseDllName.Buffer, sModuleName)==0)
             return (HMODULE) pEntry->DllBase;            
     }
 
@@ -42,7 +42,7 @@ HMODULE WINAPI hlpGetModuleHandle(LPCWSTR sModuleName) {
 }
 
 FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
-    char * pbaseAddr = (char *) hMod;
+    char * pBaseAddr = (char *) hMod;
 
     // get pointer to main headers/structures
     IMAGE_DOS_HEADER * pDosHdr = (IMAGE_DOS_HEADER *) pBaseAddr;
@@ -62,7 +62,7 @@ FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
     // resolve function by ordinal
     if(((DWORD_PTR)sProcName >> 16)==0){
         WORD ordinal = (WORD) sProcName & 0xFFFF; // convert to word
-        DWORD Base = pExportDirAddr->base; // first ordinal number
+        DWORD Base = pExportDirAddr->Base; // first ordinal number
 
         // check if ordinal is not out of scope
         if(ordinal < Base || ordinal >= Base + pExportDirAddr->NumberOfFunctions)
@@ -73,7 +73,7 @@ FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
    }
    // resolve function by name
    else {
-       for (DWORD i=0; i<pExportDirAddr->NUmberOfNames; i++){
+       for (DWORD i=0; i<pExportDirAddr->NumberOfNames; i++){
            char * sTmpFuncName = (char *) pBaseAddr + (DWORD_PTR) pFuncNameTbl[i];
 
            if(strcmp(sProcName, sTmpFuncName) == 0){
@@ -88,20 +88,20 @@ FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
 
    if((char *) pProcAddr >= (char *)pExportDirAddr && 
         (char *)pProcAddr < (char *) (pExportDirAddr + pExportDataDir-> Size)){
-            char * sFwdDLL = _strdup((char *)pProcAddr)
+            char * sFwdDLL = _strdup((char *)pProcAddr);
             if(!sFwdDLL) return NULL;
 
             // get exeteranl function name
-            char * sFwdFunction = strchr(sFwdDll, '.');
+            char * sFwdFunction = strchr(sFwdDLL, '.');
             *sFwdFunction = 0;
             sFwdFunction++;
 
-            if(pLoadLibrarya == NULL){
-                pLoadLoadLibraryA = (LoadLibrary_t) hlpGetProcAddress(hlpGetModuleHandle(L"KERNEL32.DLL"), "LoadLibraryA");
+            if(pLoadLibraryA == NULL){
+                pLoadLibraryA = (LoadLibrary_t) hlpGetProcAddress(hlpGetModuleHandle(L"KERNEL32.DLL"), "LoadLibraryA");
                 if (pLoadLibraryA == NULL) return NULL;
             }
 
-            HMODULE hFwd = pLoadLIbraryA(sFwdDLL);
+            HMODULE hFwd = pLoadLibraryA(sFwdDLL);
             free(sFwdDLL);
             if(!hFwd) return NULL;
 
@@ -110,4 +110,3 @@ FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
 
     return (FARPROC) pProcAddr;
 }
-

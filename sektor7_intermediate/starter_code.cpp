@@ -45,7 +45,7 @@ int AESDecrypt(char * payload, unsigned int payload_len, char * key, size_t keyl
 	return 0;
 }
 
-int main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
 	LPVOID exec_mem;
 	BOOL rv;

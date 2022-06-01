@@ -149,3 +149,9 @@ after using payload
 
 ![](all_imports.png)
 
+runtime may detect, next thing to do is try process injection with no imports.
+
+first lets try to refine getting process id programme.
+
+
+

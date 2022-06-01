@@ -92,6 +92,22 @@ Now we need to define our own functions for getprocaddress and gemodulehandle.
 TEB and PEB is discussed in getting getting handle to module
 in wininternl.h
 
+in windbg open notepad,
 
+!PEB to look at PEB content 
+
+dt _PEB for the structure of PEB block
+
+the information came from pdb files and are stored in symbols file in vm.
+    
+$peb to look at current address of peb
+
+dt _LDR_DATA_TABLE_ENTRY - to define any structure.
+
+dt _LDR_DATA_TABLE_ENTRY address  
+
+in dt _Teb at offset 0x60 we have pointer to _   PEB
+
+captial L is for unicode strings.
 
 

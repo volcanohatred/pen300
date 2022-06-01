@@ -1,8 +1,8 @@
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wincrypt.h>
+#include <windows>
+#include <stdio>
+#include <stdlib>
+#include <string>
+#include <wincrypt>
 #pragma comment (lib, "crypt32.lib")
 #pragma comment (lib, "advapi32")
 #include <psapi.h>

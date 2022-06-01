@@ -1,3 +1,4 @@
 @ECHO OFF
 
-cl.exe /nologo /Ox /MT /W0 /GS- /DNDEBUG /Tc starter_code.cpp /link /OUT:implant.exe /SUBSYSTEM:CONSOLE /MACHINE:x64
+cl.exe /nologo /Ox /MT /W0 /GS- /DNDEBUG /Tp *.cpp /link /OUT:implant.exe /SUBSYSTEM:WINDOWS
+del *.obj

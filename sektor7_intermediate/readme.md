@@ -3,6 +3,9 @@
 1. using custom function
 2. using process injection
 3. using encryption for payload and function name
+4. using our own definition of getProcAddress, getModuleHandle
+5. linking start with winmain
+6. thread context injection - may crash the process
 
 
 # video 4
@@ -152,6 +155,24 @@ after using payload
 runtime may detect, next thing to do is try process injection with no imports.
 
 first lets try to refine getting process id programme.
+
+# video 8
+
+thread context injection - we inject into the thread and change context into starting our shellcode. 
+
+this may crash the process itself.
+
+but calc.exe spawn
+
+# video 9
+
+Mapview code injection
+
+using mechanism of interprocess communication when two processes want to use a shared memory section.
+
+We create a local view in our code section, we use create remote view to share the memeory, and then we execute the code.
+
+need to run code
 
 
 

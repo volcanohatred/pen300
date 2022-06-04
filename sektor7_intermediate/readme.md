@@ -4,9 +4,11 @@
 2. using process injection
 3. using encryption for payload and function name
 4. using our own definition of getProcAddress, getModuleHandle
-5. linking start with winmain
+5. linking start with winmain 
 6. thread context injection - may crash the process
-
+7. Section Map view injection - also closes the host process.
+8. Early bird APC call - spawns a new process.
+9. reflective dll loader
 
 # video 4
 
@@ -156,7 +158,7 @@ runtime may detect, next thing to do is try process injection with no imports.
 
 first lets try to refine getting process id programme.
 
-# video 8
+# video 9
 
 thread context injection - we inject into the thread and change context into starting our shellcode. 
 
@@ -164,7 +166,7 @@ this may crash the process itself.
 
 but calc.exe spawn
 
-# video 9
+# video 10
 
 Mapview code injection
 
@@ -172,7 +174,33 @@ using mechanism of interprocess communication when two processes want to use a s
 
 We create a local view in our code section, we use create remote view to share the memeory, and then we execute the code.
 
-need to run code
+closes the host process after injection.
+
+# video 11
+
+Early bird APC call variation 
+workds but detection.
+also doesnt seem very useful.
+
+# video 13
+
+reflective loader introduction
+
+there is an attack dll and a target process
+
+attack dll first resolves kernel 32 and ntdll, then it looks for all imports of the dll and then resolves and calls dllmain to execute.
+
+originally by stephenfewer in his github. 
+
+# video 14
+
+https://github.com/stephenfewer/ReflectiveDLLInjection  
+
+explanation of this code here. need to do it again.
+
+
+
+ 
 
 
 

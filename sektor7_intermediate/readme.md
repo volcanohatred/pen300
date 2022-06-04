@@ -192,6 +192,14 @@ attack dll first resolves kernel 32 and ntdll, then it looks for all imports of 
 
 originally by stephenfewer in his github. 
 
+#video 15
+
+walkthrough of how the dll is injected
+
+#video 16
+
+A new method of converting the entire thing into a shellcode.
+
 # video 14
 
 https://github.com/stephenfewer/ReflectiveDLLInjection  

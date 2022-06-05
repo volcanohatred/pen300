@@ -198,6 +198,11 @@ https://github.com/stephenfewer/ReflectiveDLLInjection
 
 explanation of this code here. need to do it again.
 
+image relocations - our PE might have imagebaseaddress however it might also have an image relocation section. It basically means that our PE dowsn't need to comply with image base addresses. 
+
+in order to understand the reflective loader, ill have to start from scratch understand the binary imports exports etc and the structure of PE. Its a long grind dude.
+
+
 
 
  

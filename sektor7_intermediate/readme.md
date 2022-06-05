@@ -192,13 +192,15 @@ attack dll first resolves kernel 32 and ntdll, then it looks for all imports of 
 
 originally by stephenfewer in his github. 
 
-#video 15
+# video 15
 
 walkthrough of how the dll is injected
 
-#video 16
+# video 16
 
 A new method of converting the entire thing into a shellcode.
+
+https://github.com/monoxgas/sRDI
 
 # video 14
 
@@ -209,6 +211,8 @@ explanation of this code here. need to do it again.
 image relocations - our PE might have imagebaseaddress however it might also have an image relocation section. It basically means that our PE dowsn't need to comply with image base addresses. 
 
 in order to understand the reflective loader, ill have to start from scratch understand the binary imports exports etc and the structure of PE. Its a long grind dude.
+
+
 
 
 

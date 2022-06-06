@@ -267,8 +267,16 @@ Detours for api hooking.
 
  func1 -> func2
  after detour ,
- 
+
  func1 -> detour func ->  trampoline func -> func2
+
+![](detour_hookup.png)
+
+# video 21
+
+using import address table to replace the function. didnt aunderstand.
+
+![](iat_hookup.png)
 
 
 

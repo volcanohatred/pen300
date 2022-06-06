@@ -1,0 +1,33 @@
+#include <windows.h>
+#include <stdio.h>
+#include <wincrypt.h>
+#pragma comment (lib, "crypt32.lib")
+#pragma comment (lib, "advapi32")
+#include <psapi.h>
+#include<tlhelp32.h>
+#include "helpers.h"
+#include "PEstructs.h"
+#include <iostream>
+
+using namespace std;
+//#pragma comment(linker, "/entry:WinMain")
+
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+
+	cout << "Hello";
+	LPVOID exec_mem;
+	BOOL rv;
+	HANDLE th;
+	DWORD oldprotect = 0;
+	PEB * ProcEnvBlk = (PEB *)__readgsqword(0x60);
+
+	//printf("%s", (char *) ProcEnvBlk->Ldr);
+	cout << (char *)ProcEnvBlk->Ldr;
+}
+
+int main(){
+	cout << "Helloworld";
+	return 0;
+}

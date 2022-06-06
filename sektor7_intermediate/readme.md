@@ -182,7 +182,7 @@ Early bird APC call variation
 workds but detection.
 also doesnt seem very useful.
 
-# video 13
+# video 13 - 
 
 reflective loader introduction
 
@@ -192,17 +192,19 @@ attack dll first resolves kernel 32 and ntdll, then it looks for all imports of 
 
 originally by stephenfewer in his github. 
 
-# video 15
+# video 15 -
 
 walkthrough of how the dll is injected
 
-# video 16
+# video 16 - 
 
 A new method of converting the entire thing into a shellcode.
 
 https://github.com/monoxgas/sRDI
 
-# video 14
+# video 14 - 
+
+explantation of reflective dll injection
 
 https://github.com/stephenfewer/ReflectiveDLLInjection  
 
@@ -212,12 +214,61 @@ image relocations - our PE might have imagebaseaddress however it might also hav
 
 in order to understand the reflective loader, ill have to start from scratch understand the binary imports exports etc and the structure of PE. Its a long grind dude.
 
+# video 17 
+
+- checking the compatibility of code injection.   
+
+64 bit implant can work in 32 bit
+but 32 bit implant cannot work in 64 bit implant.
+
+how 32 bit application run on windows system
+wow64 is a windows on windows subsytem through which you can run 32 bit applications on 64 bit windows.
+wow dll serve as the interface between the 32 bit program and the 64 bit program. THis is through a common address which is called the heavens gate.
 
 
+# looking at all the compiler options
 
+```
+@ECHO OFF
 
+cl.exe /nologo /Ox /MT /W0 /GS- /DNDEBUG /Tp *.cpp /link /OUT:implant.exe /SUBSYSTEM:WINDOWS
+del *.obj
+```
 
+/nologo	Suppresses display of sign-on banner.
+/MT	Compiles to create a multithreaded executable file, by using LIBCMT.lib.
+/W0, /W1, /W2, /W3, /W4	Set output warning level.
+/GS[-]	Checks buffer security.
+/Tp	Specifies a C++ source file.
+/link	Passes the specified option to LINK.
+/OUT: - name of output file 
+
+only mt and gs seem like valid options.
+
+# video 18 
+
+how to load a 32 bit payload into a 64 bit application. need to do
+
+# video 19 
+
+API hooking
+
+how to make changes to the process at runtime when the shellcode isnt available.
+
+even debugger use api hooking to debug the process. it adds an exception and the control is given back to the debugger.
+
+Well explained. 
+
+# video 20
+
+Detours for api hooking.
+
+ There will bea detour function that will replace 5 statements with a jmp so that it goes to a tramplone 
+
+ func1 -> func2
+ after detour ,
  
+ func1 -> detour func ->  trampoline func -> func2
 
 
 

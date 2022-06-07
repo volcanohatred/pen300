@@ -278,5 +278,19 @@ using import address table to replace the function. didnt aunderstand.
 
 ![](iat_hookup.png)
 
+# video 22
+
+inline hooking of the functions, we use a jmp followed by our address to get the control from the program to hook after injecting the dll.
+
+# video 23
+
+Multipayload control to ensure that only one versino of the payload is running at one time, mutex works.
+
+# video 24
+
+Veracrypt hacking - hands on ot get password of the volume. 
+
+using all mechanisms combined.
+
 
 

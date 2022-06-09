@@ -292,5 +292,26 @@ Veracrypt hacking - hands on ot get password of the volume.
 
 using all mechanisms combined.
 
+# to do 
+
+1. need to understand the structure of PE using PE bear.
+
+looking at various videos for that
+
+## rto video 2
+
+PE is composed of 
+
+signature, Dos Header, pointer to PE header, DOS Stub
+
+in detail:
+
+![](pe.jpg)
+
+compare corkami pe headers to one shown by pe bear.
+
+
+
+
 
 

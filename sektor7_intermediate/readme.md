@@ -312,8 +312,13 @@ compare corkami pe headers to one shown by pe bear.
 
 ![](pe.png)
 
+so pe contains file headers and followed by sections
 
+dos header
+dos stub
+nt header
+section header
 
-
+trying to work through export section.
 
 

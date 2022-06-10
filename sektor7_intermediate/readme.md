@@ -310,6 +310,8 @@ in detail:
 
 compare corkami pe headers to one shown by pe bear.
 
+![](pe.png)
+
 
 
 

@@ -240,10 +240,13 @@ del *.obj
 /W0, /W1, /W2, /W3, /W4	Set output warning level.
 /GS[-]	Checks buffer security.
 /Tp	Specifies a C++ source file.
+/Tc specifies a C source file
 /link	Passes the specified option to LINK.
 /OUT: - name of output file 
+/SUBSYSTEM:WINDOWS creates a win32 application
+/SUBSYSTEM:CONSOLE creates a console application
 
-only mt and gs seem like valid options.
+only mt and gs seem like valid options. thats not true see subsystem.
 
 # video 18 
 
@@ -321,4 +324,6 @@ section header
 
 trying to work through export section.
 
+able to work thorugh c code. but how to get the output.
+This is resolved by changing the subsyttem of cto wiconsole from wins to console.
 

@@ -1,10 +1,40 @@
 #include "PEstructs.h"
 #include "helpers.h"
 #include <stdio.h>
+#include <windows.h>
+
+#include <stdlib.h>
+#include <string.h>
+#include <wincrypt.h>
+#pragma comment (lib, "crypt32.lib")
+#pragma comment (lib, "advapi32")
+#include <psapi.h>
 
 typedef HMODULE (WINAPI * LoadLibrary_t)(LPCSTR lpFileName);
 LoadLibrary_t pLoadLibraryA = NULL;
 
+void just_write() {
+    int number = 10;
+    char str[256];
+    sprintf_s(str, sizeof(str), "It doesn't work! - number: %d \n", number);
+
+    OutputDebugStringA(str);
+}
+
+void simple_dimple(){
+  
+    printf("\nsimple_dimple called\n");
+    #ifdef _M_IX86 
+        PEB * ProcEnvBlk = (PEB *) __readfsdword(0x30);
+    #else
+        PEB * ProcEnvBlk = (PEB *)__readgsqword(0x60);
+    #endif
+
+    if (sModuleName == NULL) 
+		return (HMODULE) (ProcEnvBlk->ImageBaseAddress);
+
+    printf("%-20s : 0x%-016p\n", "addr of ProcEnvBlk base address", (void*)ProcEnvBlk->ImageBaseAddress);
+}
 
 
 HMODULE WINAPI hlpGetModuleHandle(LPCWSTR sModuleName) {
@@ -116,4 +146,19 @@ FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
 	}
 
 	return (FARPROC) pProcAddr;
+}
+
+//LIBCMT.lib(exe_winmain.obj) : error LNK2019: unresolved external symbol WinMain referenced in function "int __cdecl __scrt_common_main_seh(void)" (?__scrt_common_main_seh@@YAHXZ)
+// to avoid this error we would use
+// int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+//     simple_dimple();
+//     just_write();
+//     return 0;
+// }
+
+int main(){
+    printf("hello world!");
+    just_write();
+    simple_dimple();
+    return 0;
 }

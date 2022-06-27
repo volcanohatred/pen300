@@ -201,13 +201,16 @@ RawContentLength  : 131
 
 how to base64encode content using macro
 
-```
-3.3.2.1 Exercises
+### 3.3.2.1 Exercises
 1. Create a convincing phishing pretext Word document for your organization or school that 
 replaces text after enabling macros.
 2. Insert a procedure called MyMacro that downloads and executes a Meterpreter payload after 
 the text has been switched
-```
+
+# Executing shellcode in word memory
+
+We shall try to execute payloads directly from memory
+
 
 
 

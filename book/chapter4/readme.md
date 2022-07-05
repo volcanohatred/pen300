@@ -160,8 +160,7 @@ namespace ConsoleApp1
 ![](samba.png)
 
    
-2. Create a Visual Studio project and follow the steps to compile and execute the “Hello World” 
-application.
+2. Create a Visual Studio project and follow the steps to compile and execute the “Hello World” application.
 
 
 ```
@@ -196,6 +195,46 @@ DotNettoJScript.exe ExampleAssembly.dll --lanf=Jscript --ver=v4 -o demo.js.
 
 
 using dotnettojs script we an execute any arbritary C# script as JSScript
+
+
+But when using jscript I get the following message:
+
+```
+C:\Users\misthios\codeplay\pen300\book\chapter4>DotNetToJScript.exe ExampleAssembly.dll --lang=Jscript --ver=v4 -o demo.js
+This tool should only be run on v2 of the CLR
+
+C:\Users\misthios\codeplay\pen300\book\chapter4>csc
+Microsoft (R) Visual C# Compiler version 4.8.4084.0
+for C# 5
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+This compiler is provided as part of the Microsoft (R) .NET Framework, but only supports language versions up to C# 5, which is no longer the latest version. For compilers that support newer versions of the C# programming language, see http://go.microsoft.com/fwlink/?LinkID=533240
+
+warning CS2008: No source files specified
+error CS1562: Outputs without source must have the /out option specified
+```
+
+looking further at my configuration
+
+```
+PS C:\Users\misthios\codeplay\pen300\book\chapter4> $PSVersionTable
+>>
+
+Name                           Value
+----                           -----
+PSVersion                      5.1.19041.1682
+PSEdition                      Desktop
+PSCompatibleVersions           {1.0, 2.0, 3.0, 4.0...}
+BuildVersion                   10.0.19041.1682
+CLRVersion                     4.0.30319.42000
+WSManStackVersion              3.0
+PSRemotingProtocolVersion      2.3
+SerializationVersion           1.1.0.1
+
+```
+
+after that the chapter goes into detals regarding dotnettojscript.
+
 
 ### 4.2.2.1 Exercises
 1. Set up the DotNetToJscript project, share it on the Samba share, and open it in Visual Studio.

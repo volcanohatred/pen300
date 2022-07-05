@@ -2,15 +2,17 @@ http://www.pinvoke.net/
 
 page - 131
 
-# Process Injection
+# Process Injection andmigration
 
 We are going to inject our shellcode to various processses to make it work.
 
-## finding a home for shellcode 
+# finding a home for shellcode 
 
 We can run our shellcode either in an unlikely to terminate process like explorer.exe 
 or start a hidden process notepad.exe
 or we migrate to a process like svchost.exe
+
+# process injection and migration theory
 
 Process vs thread
 
@@ -36,6 +38,10 @@ Integrity level concept: We can access a process with lower integrity level from
 ![](notepad_permissions.png)
 
 VirtualAllocEx - this is used to allocate memory to our shellcode to a remote process
+
+# process injection in C#
+
+gives in detail how to look for functions in pinvoke.net.
 
 ```c#
 LPVOID VirtualAllocEx(
@@ -147,7 +153,28 @@ scan result 5/26
 
 Trying to evade the AV we have - https://0xhop.github.io/evasion/2021/04/19/evasion-pt1/
 
+### 5.1.2.1 Exercises
+1. Replicate the steps and inject a reverse Meterpreter shell into the explorer.exe process.
 
+2. Modify the code of the ExampleAssembly project in DotNetToJscript to create a Jscript file 
+that executes the shellcode inside explorer.exe. Instead of hardcoding the process ID, which 
+cannot be known remotely, use the Process.GetProcessByName255 method to resolve it 
+dynamically.
+
+3. Port the code from C# to PowerShell to allow process injection and shellcode execution 
+from a Word macro through PowerShell. Remember that PowerShell is started as 32-bit, so 
+instead of injecting into explorer.exe, start a 32-bit process such as Notepad and inject into 
+that instead.
+
+### 5.1.2.2 Extra Mile
+
+Process injection with VirtualAllocEx, WriteProcessMemory, and CreateRemoteThread is 
+considered a standard technique, but there are a few others to consider.
+The low-level native APIs NtCreateSection, NtMapViewOfSection, NtUnMapViewOfSection, and 
+NtClose in ntdll.dll can be used as alternatives to VirtualAllocEx and WriteProcessMemory.
+Create C# code that performs process injection using the four new APIs instead of VirtualAllocEx
+and WriteProcessMemory. Convert the code to Jscript with DotNetToJscript. Note that 
+CreateRemoteThread must still be used to execute the shellcode
 
 
 

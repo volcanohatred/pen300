@@ -1495,7 +1495,7 @@ shellcode runner in the Kali web root
 
 3.7.3.1 Exercise
 1. Recreate the steps in this section to obtain a HTTP request through the proxy.
-need ti do
+need to do
 
 
 

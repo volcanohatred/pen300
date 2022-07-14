@@ -13,7 +13,7 @@ No encoder specified, outputting raw payload
 Payload size: 324 bytes
 Final size of exe file: 73802 bytes
 Saved as: /var/www/html/msfstaged.exe
-                                                                                                                                                                                                                                 
+                                                                                                                                             
 ┌──(kali㉿kali)-[~/codeplay/pen300/book/chapter3]
 └─$ base64 /var/www/html/msfstaged.exe
 

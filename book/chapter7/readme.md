@@ -136,5 +136,97 @@ add the folder to you environement variable
 C:\Users\misthios\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\Scripts
 ```
 
+Then we can debug
+
+```
+>frida-trace -p 8464 -x amsi.dll -i Amsi*
+```
+
+Looking at AMSI
+
+```
+C:\Users\misthios>frida-trace -p 9592 -x amsi.dll -i Amsi*
+Instrumenting...
+AmsiOpenSession: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiOpenSession.js"
+AmsiUninitialize: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiUninitialize.js"
+AmsiScanBuffer: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiScanBuffer.js"
+AmsiUacInitialize: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiUacInitialize.js"
+AmsiInitialize: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiInitialize.js"
+AmsiCloseSession: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiCloseSession.js"
+AmsiScanString: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiScanString.js"
+AmsiUacUninitialize: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiUacUninitialize.js"
+AmsiUacScan: Auto-generated handler at "C:\\Users\\misthios\\__handlers__\\amsi.dll\\AmsiUacScan.js"
+Started tracing 9 functions. Press Ctrl+C to stop.
+           /* TID 0x24e4 */
+116610 ms  AmsiCloseSession()
+           /* TID 0x1268 */
+116610 ms  AmsiOpenSession()
+116610 ms  AmsiScanBuffer()
+116720 ms  AmsiScanBuffer()
+116735 ms  AmsiScanBuffer()
+116751 ms  AmsiScanBuffer()
+116751 ms  AmsiScanBuffer()
+116751 ms  AmsiScanBuffer()
+116767 ms  AmsiScanBuffer()
+116767 ms  AmsiScanBuffer()
+           /* TID 0x1e60 */
+116798 ms  AmsiCloseSession()
+           /* TID 0x1268 */
+116798 ms  AmsiOpenSession()
+116798 ms  AmsiScanBuffer()
+```
+
+We go to 
+C:\Users\misthios\__handlers__\amsi.dll
+
+and change the AmsiScanBuffer.js open process function as 
+
+```
+onEnter: function (log, args, state) {
+ log('[*] AmsiScanBuffer()');
+ log('|- amsiContext: ' + args[0]);
+ log('|- buffer: ' + Memory.readUtf16String(args[1]));
+ log('|- length: ' + args[2]);
+ log('|- contentName ' + args[3]);
+ log('|- amsiSession ' + args[4]);
+ log('|- result ' + args[5] + "\n");
+ this.resultPointer = args[5];
+},
+
+```
+
+and onLeave function as
+
+```
+onLeave: function (log, retval, state) {
+ log('[*] AmsiScanBuffer() Exit');
+ resultPointer = this.resultPointer;
+ log('|- Result value is: ' + Memory.readUShort(resultPointer) + "\n");
+}
+```
+
+### 7.2.2.1 Exercises
+1. Use Frida to trace innocent PowerShell commands and fill out the onEnter and onExit
+JavaScript functions of AmsiScanBuffer to observe how the content is being passed.
+2. Enter malicious commands and try to bypass AMSI detection by splitting strings into 
+multiple parts.
+
+done
+
+# Bypassing AMSI refelction in powershell
+
+we can drop in form of strings however it quickly becomes cat and mouse.
+
+# What context mom ?
+
+When we examined each of the AMSI Win32 APIs, we found that they all use the context structure 
+that is created by calling AmsiInitialize. 
+
+Since this context structure is undocumented, we will use Frida to locate its address in memory 
+and then use WinDbg to inspect its content. As before, we will open a PowerShell prompt and a 
+trace it with Frida. Then, we’ll enter another “test” string to obtain the address of the context 
+structure
+
+
 
 

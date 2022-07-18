@@ -190,8 +190,10 @@ In the right pane, right-click the empty area and create a new DWORD (32-bit) va
 Rename the new item to DisableAntiSpyware
 Double-click DisableAntiSpyware and change its value to 1.
 Windows Defender will not load after the next computer restart. To enable Windows Defender again, you can either delete the created registry key or simply change its value to 0.
-
-
 ```
+
+
+
+
 
 

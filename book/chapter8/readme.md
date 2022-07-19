@@ -47,11 +47,12 @@ whitelisting across version updates
 
 we can launch gpedit.msc, which is the GPO configuration manager
 
+```ms
 In the local group policy editor
 In the Local Group Policy Editor, we’ll navigate to Local Computer Policy -> Computer 
 Configuration -> Windows Settings -> Security Settings -> Application Control Policies and select 
 the AppLocker item
-
+```
 configure rules
 enfore all and selection default rules to enable whitelisting protection.
 
@@ -63,5 +64,224 @@ we use
 
 we can `copy C:\Windows\System32\calc.exe calc2.exe`
 
+on running form new user m. open cmd.exe and press shift opena s a different user
+
+
+### 8.1.2.1 Exercises
+1. Configure default rules for all four categories of file types and enable AppLocker on your 
+Windows 10 victim VM.
+2. Copy an executable to a location outside the whitelisted folders and observe how it is 
+blocked by AppLocker when executing it.
+3. Create a small Jscript script, store it outside the whitelisted folders and execute it. Is it 
+blocked?
+
+# Basic Bypasses
+
+we look at poor configuration enforced through default rules.
+
+# Trusted folders
+
+The default rules for AppLocker whitelist all executables and scripts located in C:\Program Files, 
+C:\Program Files (x86), and C:\Windows. This is a logical choice since it is assumed that non-admin users cannot write executables or scripts into these directories.
+In this section, we will put this assumption to the test as we construct our first (albeit very simple) 
+AppLocker bypass.
+In theory, we should be able to execute a program or script in a subdirectory that allows both 
+write and execute. If we can find writable and executable folders on a development machine, we 
+can reuse the bypass later on a compromised machine which has the same rules applied.
+To locate user-writable folders, we’ll use AccessChk from SysInternals,435 which is located in 
+C:\Tools\SysInternalsSuite on our Windows 10 victim VM. For this test, we’ll execute it from an 
+administrative command prompt to avoid potential AppLocker restrictions.
+
+accesschk.exe "m" C:\Windows -wus
+
+```
+RW C:\Windows\Panther
+RW C:\Windows\Tasks
+RW C:\Windows\tracing
+RW C:\Windows\Logs\PBR
+...
+```
+
+examinig one of these directories 
+
+```cli
+C:\Users\misthios\Documents\sysinternals>icacls.exe C:\Windows\Tasks
+C:\Windows\Tasks NT AUTHORITY\Authenticated Users:(RX,WD)
+                 BUILTIN\Administrators:(F)
+                 BUILTIN\Administrators:(OI)(CI)(IO)(F)
+                 NT AUTHORITY\SYSTEM:(F)
+                 NT AUTHORITY\SYSTEM:(OI)(CI)(IO)(F)
+                 CREATOR OWNER:(OI)(CI)(IO)(F)
+
+Successfully processed 1 files; Failed processing 0 files
+```
+
+trying to copy and run calc.exe in Tasks folder
+
+![](./calculator_not_opening.png)
+
+### 8.2.1.1 Exercises
+1. Repeat the analysis to verify that C:\Windows\Tasks is both writable and executable for the 
+“student” user. Execute a copied executable from this directory.
+
+not wokrking
+
+2. Locate another directory in C:\Windows that could be used for this bypass.
+3. Copy a C# shellcode runner executable into one of the writable and executable folders and 
+bypass AppLocker to obtain a reverse shell.
+4. Create a custom AppLocker rule to block the folder C:\Windows\Tasks. Make it a path rule 
+of type deny. Consult the online documentation if needed
+
+# bypass with DLLs
+
+The default ruleset doesn’t protect against loading arbitrary DLLs. If we 
+were to create an unmanaged DLL, we would be able to load it and trigger exported APIs to gain 
+arbitrary code execution.
+
+```c
+// dllmain.cpp : Defines the entry point for the DLL application.
+#include "pch.h"
+
+#include <Windows.h>
+
+BOOL APIENTRY DlMain(HMODULE hModule,
+	DWORD ul_reason_for_call,
+	LPVOID lpReserved)
+{
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
+}
+
+extern "C" __declspec(dllexport) void run()
+{
+	MessageBoxA(NULL, "Execution happened", "Bypass", MB_OK);
+}
+```
+
+
+
+Although this is basic code, it demonstrates that DLLs are not restricted by the current AppLocker 
+rules.
+We can, however, enforce DLL whitelisting with AppLocker, again through the Local Group Policy 
+Editor. Let’s do that now.
+Reopening the rule enforcement window in the group policy editor, we’ll click the “Advanced” tab. 
+This presents a warning about system performance issues related to DLL whitelisting 
+enforcement and offers the option to enable it.
+After checking “Enable the DLL rule collection” and clicking Apply, we’ll return to the original 
+“Enforcement” tab which presents a new entry related to DLLs
+
+not working the dll are still executing
+
+
+### 8.2.2.1 Exercises
+1. Bypass AppLocker by executing the proof-of-concept DLL C:\Tools\TestDll.dll, as shown in 
+this section.
+
+![](20220719125823.png)  
+
+2. Generate a Meterpreter DLL with msfvenom and use that together with rundll32 to bypass 
+AppLocker to obtain a reverse shell.
+3. Enable default rules for DLLs and verify that the Meterpreter DLL is blocked.
+
+### 8.2.2.2 Extra Mile
+Examine the default Windows Installer rules and determine how it would be possible to bypass 
+those
+
+# Alternate Data Streams
+
+NTFS supports multiple streams
+
+we created ./test.js
+
+le, TeamViewer version 12, which is installed on the Windows 10 victim machine, uses 
+a log file (TeamViewer12_Logfile.log) that is both writable and executable by the student user. We 
+can use the native type439 command to copy the contents of test.js into an alternate data stream 
+of the log file with the : notation:
+
+to create alternate stream :
+
+```
+>type test.js > "C:\Program Files 
+(x86)\TeamViewer\TeamViewer12_Logfile.log:test.js"
+```
+
+we vrify whther the data was wrtten or not
+
+data is not written.
+
+### 8.2.3.1 Exercises
+1. Repeat the exercise to embed simple Jscript code inside an alternative data stream to 
+obtain execution.
+2. Replace the current Jscript code with a DotNetToJscript shellcode runner and obtain a 
+Meterpreter reverse shell
+
+not done as lg file not available
+
+# Third Party Execution
+
+To demonstrate this, we’ll create a small Python script and execute it:
+```
+C:\Users\student>echo print("This executed") > test.py
+C:\Users\student>python test.py
+```
+This executed
+Listing 336 - Bypassing AppLocker with Python
+The output from Listing 336 shows that AppLocker may easily be bypassed through a third-party 
+scripting engine, but of course, it must be previously installed, which is rare in most traditional 
+environments
+
+Even more interesting is the lack of enforcement against VBA code inside Microsoft Office 
+documents. If a Microsoft Office document is saved to a non-whitelisted folder, AppLocker 
+cannot restrict execution of its embedded macros, allowing for reuse of our previously developed 
+tradecraft. This highlights the usefulness of Office documents in client-side attacks.
+
+### 8.2.4.1 Exercise
+1. Generate a Python reverse Meterpreter payload with msfvenom and use that to bypass 
+AppLocker and get a reverse Meterpreter shell.
+
+# Bypassing AppLocker with PowerShell
+
+In previous sections we executed simple bypasses. In the remaining sections, we will investigate 
+advanced and increasingly complex bypasses and reuse previously-developed tradecraft that 
+bypasses non-standard AppLocker rulesets.
+Our previously developed tradecraft relied heavily on PowerShell which, as previously 
+demonstrated, can easily bypass detection mechanisms like AMSI. In this section, we will analyze 
+the various restrictions Applocker places on PowerShell and demonstrate various bypasses
+
+# Powershell constrained language mode
+
+weak protection mechanism can be easily bypassed with the built in "Bypass" execution policy. 
+
+To address this, Microsoft introduced the ConstrainedLanguage mode (CLM) with PowerShell 
+version 3.0. When AppLocker (or WDAC) is enforcing whitelisting rules against PowerShell scripts, 
+ConstrainedLanguage is enabled as well
+
+Under ConstrainedLanguage, scripts that are located in whitelisted locations or otherwise comply 
+with a whitelisting rule can execute with full functionality. However, if a script does not comply 
+with the rules, or if commands are entered directly on the command line, ConstrainedLanguage
+imposes numerous restrictions.
+
+```
+PS C:\Users\m\Documents\sysinternals> [Math]::Cos(1)
+0.54030230586814
+```
+
+PS C:\Users\m\Documents\sysinternals> $ExecutionContext.SessionState.LanguageMode
+FullLanguage
+
+cant check because it comes out to be FUll Language.
+
+### 8.3.1.1 Exercises
+1. Verify that constrained language mode is enabled for a PowerShell prompt executed in the 
+context of the “student” user.
+2. Check if our existing PowerShell shellcode runner is stopped once constrained language 
+mode is enabled.
 
 

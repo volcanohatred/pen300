@@ -189,7 +189,7 @@ after using relaese/build we find that we need DotNetToJscript.exe , NDesk.Optio
 
 we can use the script as -
 
-DotNettoJScript.exe ExampleAssembly.dll --lanf=Jscript --ver=v4 -o demo.js.
+`DotNettoJScript.exe ExampleAssembly.dll --lanf=Jscript --ver=v4 -o demo.js`
 
 ![](./DotnetTojs.png)
 

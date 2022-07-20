@@ -1114,6 +1114,9 @@ catch(e)
 
 ### 7.6.3.1 Exercises
 1. Recreate the AMSI bypass by renaming wscript.exe to “amsi.dll” and executing it.
+
+not tried. not working reported.
+
 2. Instead of a regular shellcode runner, implement this bypass with a process injection or 
 hollowing technique and obtain a Meterpreter shell that stays alive after the detection
 

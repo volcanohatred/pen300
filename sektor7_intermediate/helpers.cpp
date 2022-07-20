@@ -10,6 +10,8 @@
 #pragma comment (lib, "advapi32")
 #include <psapi.h>
 
+#include <conio.h>
+
 typedef HMODULE (WINAPI * LoadLibrary_t)(LPCSTR lpFileName);
 LoadLibrary_t pLoadLibraryA = NULL;
 
@@ -21,7 +23,11 @@ void just_write() {
     OutputDebugStringA(str);
 }
 
-void simple_dimple(){
+void print_addr(char * text1, void * text_addr){
+    printf("%-20s : 0x%-016p\n", text1 , text_addr);
+}
+
+void simple_dimple(LPCWSTR sModuleName=NULL){
   
     printf("\nsimple_dimple called\n");
     #ifdef _M_IX86 
@@ -31,9 +37,19 @@ void simple_dimple(){
     #endif
 
     if (sModuleName == NULL) 
-		return (HMODULE) (ProcEnvBlk->ImageBaseAddress);
+		print_addr("Procblock base addr: ", (void *)ProcEnvBlk->ImageBaseAddress);
+    
 
-    printf("%-20s : 0x%-016p\n", "addr of ProcEnvBlk base address", (void*)ProcEnvBlk->ImageBaseAddress);
+    PEB_LDR_DATA * Ldr = ProcEnvBlk->Ldr;
+    LIST_ENTRY * ModuleList = NULL;
+
+    ModuleList = &Ldr->InMemoryOrderModuleList;
+    print_addr("moduleList", ModuleList);
+	LIST_ENTRY *  pStartListEntry = ModuleList->Flink;
+    print_addr("pStartListEntry", (void *) pStartListEntry);
+    getch();
+
+    //printf("%-20s : 0x%-016p\n", "addr of ProcEnvBlk base address", (void*)ProcEnvBlk->ImageBaseAddress);
 }
 
 
@@ -158,7 +174,6 @@ FARPROC WINAPI hlpGetProcAddress(HMODULE hMod, char * sProcName) {
 
 int main(){
     printf("hello world!");
-    just_write();
     simple_dimple();
     return 0;
 }

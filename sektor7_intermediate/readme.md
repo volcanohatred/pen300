@@ -327,3 +327,6 @@ trying to work through export section.
 able to work thorugh c code. but how to get the output.
 This is resolved by changing the subsyttem of cto wiconsole from wins to console.
 
+![](verified_address.png)
+
+

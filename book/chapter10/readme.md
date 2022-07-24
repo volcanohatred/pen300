@@ -120,6 +120,62 @@ as task number 1
 
 # Shared libraries
 
+a elf binary looks at poath from these locations
+
+1. Directories listed in the application’s RPATH595 value.
+2. Directories specified in the LD_LIBRARY_PATH environment variable.
+3. Directories listed in the application’s RUNPATH596 value.
+4. Directories specified in /etc/ld.so.conf.
+5. System library directories: /lib, /lib64, /usr/lib, /usr/lib64, /usr/local/lib, /usr/local/lib64, and 
+potentially others.
+
+# shared library hijacking using LD_Library_path
+
+After checking its internal RPATH values for hard coded paths, it then checks for an 
+environment variable called LD_LIBRARY_PATH. Setting this variable allows a user to override the 
+default behavior of a program and insert their own versions of libraries
+
+we can inser a line in .bashrc or .bash_profile to define a LD_LIBRARY_PATH
+
+ This setting is configured in the 
+/etc/sudoers file by using the env_reset keyword as a default. Some systems are configured to 
+allow a user’s environment to be passed on to sudo. These will have env_keep set instead.
+
+We could bypass the env_reset setting with our previously-mentioned .bashrc alias for the sudo 
+command. We mentioned this approach earlier when we set the sudo command to sudo -E in 
+Listing 443. As a normal user, it’s not typically possible to read /etc/sudoers to know if env_reset
+is set, so it may be useful to create this alias setting regardless.
+
+Example of a malicious C program
+
+```C
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h> // for setuid/setgid
+static void runmahpayload() __attribute__((constructor));
+
+void runmahpayload() {
+ setuid(0);
+ setgid(0);
+ printf("DLL HIJACKING IN PROGRESS \n");
+ system("touch /tmp/haxso.txt");
+}
+```
+
+`gcc -Wall -fPIC -c -o hax.o hax.c`
+
+This produces a libhax.so shared library file.
+One important thing to note is that shared libraries in Linux use the soname602 naming 
+convention. This is typically something like lib.so, which may also include a version number 
+appended to the end with a period or full-stop character. For example, we might see lib.so.1. 
+Naming our libraries following this convention will help us with the linking process
+
+ldd will give the loaded library when a program is run.
+
+
+
+
+
 
 
 

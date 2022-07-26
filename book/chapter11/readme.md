@@ -159,4 +159,51 @@ using ps aux we found that oprnbox is being used
 
 # thinking outside the box
 
+openbox help
+
+`openbox --replace` removes all running process including vnc connection but the kiosk systme is not itself restarted
+
+backuo the profile first
+`mv /home/guest/.mozilla/firefox/c3pp43bg.default /home/guest/.mozilla/firefox/old_prof`
+
+creating a symlink to a privileged directory- /usr/bin
+
+Since the kiosk is configured to write the bookmarks file in the c3pp43bg.default folder, let’s 
+replace that folder with a symlink656 in an attempt to force the kiosk to write the bookmarks file to 
+a different location. If the underlying kiosk refresh script raises privileges, we may be able to 
+redirect it to write in a privileged directory.
+
+`ln -s /usr/bin /home/guest/.mozilla/firefox/c3pp43bg.default`
+
+once symlink is created we run openbox --replace to regenerate bookmarks.html
+
+so it mean then we can write in privileged directories
+
+however the parent folder permissions control the behaviour of the directories.
+
+```sh
+echo "#!/bin/bash" > /usr/bin/bookmarks.html
+echo "gtkdialog -f /home/guest/terminal.txt" >> /usr/bin/bookmarks.html
+```
+The bookmarks file has been overwritten by a simple script that will launch our gtkdialog terminal. 
+Our goal is to get the system to run this as root, giving us a root shell.
+With the script in place, we need to get the system to run it as a privileged user. Normally, we 
+could leverage several privilege escalation techniques.
+For example, the scripts in the protected /etc/profile.d/ folder, all of which must have an .sh
+extension,657 are run at user login. If we wrote our bookmark file to that directory, and added a .sh
+extension, our terminal would run as root when that user logged in. Unfortunately, we cannot 
+rename the file. We’ll face this restriction on all other privileged directories on the system. This 
+means we’re stuck with the bookmarks.html filename.
+
+The /etc/cron.d directory is a part of the Cron job scheduler. 
+Any scripts placed in this folder would be run as root. However, as with /etc/profile.d, there is a 
+catch. Files placed in /etc/cron.d must be owned by the root user or they will not run.658 Since we 
+cannot change the ownership of the file, we cannot leverage this attack vector either.
+
+However, according to the reference above, certain cron directories including /etc/cron.hourly, 
+/etc/cron.daily, /etc/cron.weekly, and /etc/cron.monthly do not have such stringent requirements 
+and will accept non-root-owned files. Given the obvious timing benefits, /etc/cron.hourly is our 
+best option
+
+# Root Shell at the Top of the Hour
 

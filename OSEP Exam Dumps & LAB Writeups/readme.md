@@ -51,6 +51,10 @@ Step 16:
 Command injection in webpage add powershell one liner reverse shell nishang payload and get
 shell and read secret.txt
 
+
+looking at nishang
+
+
 # lab1
 
 Looking at lab1 dump I realise that first it was domain enumeration

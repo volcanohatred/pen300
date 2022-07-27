@@ -417,3 +417,4 @@ page 366
 1. Repeat the steps in the previous section to get a reverse shell.
 2. Tunnel SMB through the tunnel and access files on the Windows machine via DNS.
 
+

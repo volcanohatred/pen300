@@ -41,7 +41,7 @@ Now swiftmgmt01 has generic write on swiftweb01 (check bloodhound)
 Exploit the RBCD exactly as in lab manual, spawn powershell in a machine account context
 (swiftweb01$) using mimikatz pass the hash and get code exec on swiftweb01
 
-https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/resourcebased-constrained-delegation-ad-computer-object-take-over-and-privilged-code-execution
+https://www.ired.team/offensive-security-experiments/active-directory-kerberos-abuse/resourcebased-constrained-delegation-ad-computer-object-take-over-and-privilged-code-execution
 Step 14:
 Inside you will find a powershell script curling to a web server in a different vlan
 Step15:

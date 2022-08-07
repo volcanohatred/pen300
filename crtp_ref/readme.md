@@ -253,3 +253,6 @@ https://tryhackme.com/module/privilege-escalation
 
 
 
+```
+runas commands with mimikatz
+```

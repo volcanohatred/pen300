@@ -165,3 +165,6 @@ PS C:\> Get-Content D:\MultipleLineExamples.txt | Select -First 10 | Select -Las
 
 get-content myfile.txt | select -first 1 -skip 9
 ```
+
+all done through sed
+

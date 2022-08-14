@@ -182,6 +182,8 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe /reference:"C:\Program Fil
 Assemblies\Microsoft\WindowsPowerShell\3.0\System.Management.Automation.dll" 1.cs
 ```
 
+dll not found error : https://stackoverflow.com/questions/27374767/missing-automation-from-namespace-system-management-missing-assembly-referenc#:~:text=If%20a%20DLL%20is%20not%20found%2C%20there%20is,package%20names%20have%20changed.%20Uninstall%20the%20package%20System.Management.Automation
+
 
 
 

@@ -357,6 +357,8 @@ async reverse shell
 
 `https://github.com/onSec-fr/Http-Asynchronous-Reverse-Shell` - not working
 
+# jaws enumeration
 
+in jaws.ps1
 
 

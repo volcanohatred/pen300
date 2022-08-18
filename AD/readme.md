@@ -18,4 +18,13 @@ https://www.hackingarticles.in/a-detailed-guide-on-amsi-bypass/
 amsi byoass with a single command:
 https://news.sophos.com/en-us/2021/06/02/amsi-bypasses-remain-tricks-of-the-malware-trade/
 
+# looking at ad enumeration
+
+even without an ad user cann connect to a workgroup
+https://book.hacktricks.xyz/windows-hardening/active-directory-methodology
+
+## kerberoas attacks
+Kerberos
+https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/kerberos-authentication
+
 

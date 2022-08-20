@@ -40,7 +40,8 @@ Active - smbmap for enumeration and smbclient to connect, gppg policy issue, ker
 
 Monteverde - crackmapexec password spraying, getting creds from azure.xml , using evilwinrm, privesc by getting config files which contains password for replication server.
 
-Cascade - 
+Cascade - smb anonymous login check, rpc to list users , ldap naming contexts, getting the username and password, connecting with winrm, connecting with smb, downloading all smb files, getting a passwd, looking at groups - auditshare, getting exe, using dsnspy, getting cleartext password and use to to logon as arksvc, ad recycle bin user, using it get the files, getting password to tempadmin
+
 Resolute
 Mantis
 Fuse

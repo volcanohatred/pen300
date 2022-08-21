@@ -42,11 +42,8 @@ Monteverde - crackmapexec password spraying, getting creds from azure.xml , usin
 
 Cascade - smb anonymous login check, rpc to list users , ldap naming contexts, getting the username and password, connecting with winrm, connecting with smb, downloading all smb files, getting a passwd, looking at groups - auditshare, getting exe, using dsnspy, getting cleartext password and use to to logon as arksvc, ad recycle bin user, using it get the files, getting password to tempadmin
 
-Resolute
+Resolute - smb enumeration, e\rpclient to get the password then dnsremote admins path to get the privilege escalation.
+
 Mantis
 Fuse
 Fulcrum
-
-
-
-

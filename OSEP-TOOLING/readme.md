@@ -38,8 +38,9 @@ Forest - ldap and smb enumeration, evil winrm kerberoasting and  bloodhound shar
 
 Active - smbmap for enumeration and smbclient to connect, gppg policy issue, kerberoasting, GetUserSPNs.py, psexec.py
 
-Monteverde
-Cascade
+Monteverde - crackmapexec password spraying, getting creds from azure.xml , using evilwinrm, privesc by getting config files which contains password for replication server.
+
+Cascade - 
 Resolute
 Mantis
 Fuse

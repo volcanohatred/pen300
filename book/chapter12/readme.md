@@ -211,6 +211,61 @@ actions remotely from your Kali Linux machine.
 
 # Access Tokens
 
+authorisation is kept in check using user access tokens.
+
+# Access Token Theory
+
+integrity levels - low, medium, high and system
+low - for sandbox environments like web browsers
+medium - regular user applications
+administrators - high integrity
+system - self explanatory
+
+Local admin - have regular integrity
+and then run as admin - high integrity
+
+UAC (user access control) mechanism links these two tokens together. 
+
+privileges are included in the access token, privileges are controleed by two bitmasks. First sets the privleges that are present for that specific  token and cannot be modified through any apis inside the same logon session. The second registers if the present privileges are enabled or disabled and may be dynamically updated through win32 adjusttokenPrivilegs api.
+
+```
+PS C:\Users\WIN10RED\Documents\pen300> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                          State 
+  
+============================= ==================================== ========
+SeShutdownPrivilege           Shut down the system                 Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking             Enabled
+SeUndockPrivilege             Remove computer from docking station Disabled
+SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled
+SeTimeZonePrivilege           Change the time zone                 Disabled
+PS C:\Users\WIN10RED\Documents\pen300> 
+```
+
+we cant remove exiting privilegs however we can add additional privileges
+
+While it is impossible to modify the set of privileges that are associated with an active logon 
+session, it is however possible to add additional privileges that will take effect after the targeted 
+user account logs out and logs back in.
+Programmatically this can be done with the Win32 LsaAddAccountRights701 API, but more often it 
+would be performed through a group policy or locally through an application like secpol.msc702
+as displayed in Figure 225
+
+
+### 12.2.1.1 Exercise
+1. Use cmd.exe and the whoami command to view the privileges for both a regular user 
+command prompt as well as an elevated command prompt
+done
+
+
+
+
+
+
+
 
 
 

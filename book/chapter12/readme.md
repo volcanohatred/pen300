@@ -260,7 +260,7 @@ as displayed in Figure 225
 command prompt as well as an elevated command prompt
 done
 
-# Elevation with impoersonation
+# Elevation with impersonation
 
 various ways to levrage certain privileges for escalation
 
@@ -529,12 +529,58 @@ namespace console_csharp
             Boolean ok = ConvertSidToStringSid(TokenUser.User.Sid, out pstr);
             string sidstr = Marshal.PtrToStringAuto(pstr);
             Console.WriteLine(@"Found sid {0}", sidstr);
-        }hgrf zxc
+        }
     }
 }
 ```
 
-full program to do
+![](2022-08-27-16-26-16.png)
+
+to check whether it is correct we can dump the sid
+
+```
+C:\>whoami /user
+
+USER INFORMATION
+----------------
+
+User Name                    SID
+============================ ========
+nt authority\network service S-1-5-20
+```
+
+now we sheft our attention to print spooler service. Communication to the spool 
+
+Print System Remote Prototcol worjs with named pipes - \pipe\spoolss
+
+RpcOpenPrinter- monitors printer object changes
+
+RpcRemoteFindFirstPrinterChangeNotification - notifies changes to print client
+
+MSRPN cannot be called directly. Print spooler functionality resides in unmaanged RPCRT4.dll and is called through a proxy function NdrClientCall3 which uses a binary format to pass and invoke underlying function.
+
+we use the spoolsample C# implementation by Lee Christensen- https://github.com/leechristensen/SpoolSample
+or the powershell scanner written by Le Toux - https://github.com/vletoux/SpoolerScanner
+
+The SpoolSample application was supposed to be used in AD setting.
+
+when we use spoolsample we must specify the name of the server to connect to and the name of the server we control 
+
+the print spooler service running as SYSTEM needs to contact the simulated print client but since they are on the same host, they in effect require the same default pipe name (pipe\spoolss) because of this we cannot use the same named pipe with required name easily
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

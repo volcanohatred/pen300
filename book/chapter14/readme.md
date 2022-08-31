@@ -370,3 +370,82 @@ access.backup.20200730120454.json`
 
 # Compromising Artifactory's Database
 
+if there were no backup files available we can access the database itself or attempt to copy it and extract the hashes manually.
+
+The open source version of artifactory we are using locks its derby database while the server is running we could attempt to remove the locks and access the database directly to inject users but may lead to corrupted databases
+safer is to copy the database to a new location
+
+in the controller VM, the database is located at /opt/jfrog/artifactory.var.data.access.derby
+
+we will create a temporary folder in /tmp for the database
+
+```
+offsec@controller:~$ mkdir /tmp/hackeddb
+offsec@controller:~$ sudo cp -r /opt/jfrog/artifactory/var/data/access/derby 
+/tmp/hackeddb
+offsec@controller:~$ sudo chmod 755 /tmp/hackeddb/derby
+offsec@controller:~$ sudo rm /tmp/hackeddb/derby/*.lck
+```
+
+```
+sudo /opt/jfrog/artifactory/app/third-party/java/bin/java -jar 
+/opt/derby/db-derby-10.15.1.3-bin/lib/derbyrun.jar ij
+ij version 10.15
+ij> connect 'jdbc:derby:/tmp/hackeddb/derby'
+```
+
+selecr * from access users
+
+# we can add a secondary artifactory admin account
+
+This method requires write access to the /opt/jfrog/artifactory/var/etc/access folder and the 
+ability to change permissions on the newly-created file, which usually requires root or sudo
+access.
+To demonstrate this method, we’ll log in to the controller server as offsec and navigate to the 
+/opt/jfrog/artifactory/var/etc/access folder. We then need to create a file through sudo called 
+bootstrap.creds with the following content
+
+### 14.2.12.1 Exercises
+1. Copy the Artifactory database and extract, then crack, the user hashes.
+2. Log in to Artifactory and deploy a backdoored binary. Download and run it as a normal user 
+on linuxvictim
+
+# kerberos on linux
+
+Kerberos uses the same underlying technology on Linux as it does on Windows, but it does 
+behave differently in some respects
+
+# General introduction to kerberos on linux
+
+enumerative tgt etc.
+
+# stealing keytab files
+
+### 14.3.2.1 Exercise
+1. Log in to the linuxvictim machine as the domain administrator, create a keytab, then log in as 
+root in a different SSH session and steal the keytab.
+
+# attacking using credential cache files
+
+# attacking with impacker
+
+# kerberos with impacket
+
+### 14.3.4.1 Exercises
+1. As root, steal the domain administrator’s ccache file and use it.
+2. Use Impacket to enumerate the AD user’s SPNs and get a shell on the domain controller.
+### 14.3.4.2 Extra Mile
+In addition to the attacks covered here, it’s also possible to combine techniques involving both 
+Windows and Linux boxes.
+Log in to the Windows 10 client as the domain administrator user “administrator”, which will 
+generate a TGT in memory. Next, create a reverse shell and use that to export the TGT back to 
+your Kali machine. Transform the TGT into a ccache format.
+To simulate a firewalled network, use Impacket to pass the ticket to the domain controller. Try 
+pivoting through the Windows 10 client to obtain a reverse shell.
+
+
+
+
+
+
+

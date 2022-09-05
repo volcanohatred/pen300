@@ -37,7 +37,6 @@ https://book.hacktricks.xyz/windows-hardening/active-directory-methodology
 Kerberos
 https://book.hacktricks.xyz/windows-hardening/active-directory-methodology/kerberos-authentication
 
-<<<<<<< HEAD
 Firstly, Kerberos is an authentication protocol, not authorization. In other words, it allows to identify each user, who provides a secret password, however, it does not validates to which resources or services can this user access.
 
 Agents

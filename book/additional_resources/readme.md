@@ -152,3 +152,4 @@ sending to background - background
 when trying with windows/shell_reverse_tcp - we got the response as :
 
 we can also try and use the normal meterpreter shell commands to execute stuuf
+

@@ -8,3 +8,4 @@ not able to locate the string
 
 https://www.geeksforgeeks.org/c-sharp-tutorial/#multithreading
 
+![](2022-09-06-02-34-36.png)

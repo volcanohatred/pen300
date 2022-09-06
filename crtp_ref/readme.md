@@ -211,12 +211,19 @@ Get-Modifiableservicefile -verbose
 Get-ModifiableService -verbose
 
 from powerup
-Invoke-AllChecks
+>Invoke-AllChecks
 
 BeRoot executable
 
 privesc
-Invoke-PrivEsc
+>Invoke-PrivEsc
+
+# Jenkins
+
+dcorp-ci (172.16.3.11) on port
+8080
+
+
 
 
 

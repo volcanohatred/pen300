@@ -58,9 +58,34 @@ Get-Help Get-PSDrive
 
 ### PowerShell Profiles
 
+Scripts that run every time an “official” PowerShell host (meaning
+powershell.exe/powershell_ise.exe) starts
+• Meant for shell customization
+• Not loaded with remoting!
+• i.e. the PowerShell version of /etc/profile
+• You can check your current profile with $profile
+• Profiles can be subverted with malicious proxy functionality!
+• More information: http://www.exploitmonday.com/2015/11/investigating-subversive-powershell.html
+• More information: Get-Help about_Profiles
 
+%windir%\System32\WindowsPowerShell\v1.0\profile.ps1
 
+# exporting and importing powershell objects
 
+function... | Export-Clixml output.xml exports an XML-based
+representation of one or more objects that can later be reimported with Import-CliXML
+
+# Variables
+
+$ followed by any combination of numbers and (case-insensitive)
+letters
+• If using New-Variable, you can specify non-printable characters!
+• New-Variable -Name ([Char] 7) -Value 'foo'
+• To see more information about all of the automatic variables (like
+$ENV) run Get-Help about_Automatic_Variables
+• If you want to list all of the variables in your current scope:
+• Get-ChildItem Variable:\
+• To cast a variable to a specific type, use [Type] $Var
 
 
 

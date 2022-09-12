@@ -973,6 +973,19 @@ then call miikatz,
 section.
 2. Create a PowerShell script that calls MiniDumpWriteDump to create a dump file
 
+# trying token impersonation from
+
+https://0x00-0x00.github.io/research/2018/10/17/Windows-API-and-Impersonation-Part1.html
+
+https://github.com/hfiref0x/UACME - to get admin privilege and UAC bypass
+
+akagi64 61 - pops an admin shell
+
+search for impersonation with token
+
+
+
+
 
 
 

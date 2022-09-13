@@ -1397,17 +1397,3 @@ It is calling svchost but then exits
 `svchost.exe` not working.
 
 2. Modify the code to generate a Jscript file using DotNetToJscript that performs process hollowing.
-
-
-
-
-
-
-
-
-
-
-
-
-
-

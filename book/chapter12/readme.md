@@ -329,7 +329,6 @@ HANDLE CreateNamedPipeA(
 );
 ```
 
-
 ```
 
 to list named pipes :
@@ -793,7 +792,7 @@ If this succeeds, the ticket granting service responds to the client with a Tick
 Reply (TGS_REP). This packet contains three parts:
 1. The SPN to which access has been granted.
 2. A session key to be used between the client and the SPN.
-3. A service ticket containing the username and group memberships along with the newlycreated session key
+3. A service ticket containing the username and group memberships along with the newly created session key
 
 The first two parts (the SPN and session key) are encrypted using the session key associated 
 with the creation of the TGT and the service ticket is encrypted using the password hash of the 
@@ -982,75 +981,5 @@ https://github.com/hfiref0x/UACME - to get admin privilege and UAC bypass
 akagi64 61 - pops an admin shell
 
 search for impersonation with token
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

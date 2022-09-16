@@ -726,6 +726,38 @@ winrm - https://decoder.cloud/2019/12/06/we-thought-they-were-potatoes-but-they-
 1. Combine the code and verify the token impersonation.
 2. Use the C# code and combine it with previous tradecraft to obtain a Meterpreter, Covenant, 
 or Empire SYSTEM shell.
+
+
+functions to manipulate token
+
+```
+Function		Description	
+AdjustTokenGroups		Changes the group information in an access token.	
+
+AdjustTokenPrivileges		Enables or disables the privileges in an access token. It does not grant new privileges or revoke existing ones.	
+
+CheckTokenMembership		Determines whether a specified SID is enabled in a specified access token.	
+
+CreateRestrictedToken		Creates a new token that is a restricted version of an existing token. The restricted token can have disabled SIDs, deleted privileges, and a list of restricted SIDs.	
+
+DuplicateToken		Creates a new impersonation token that duplicates an existing token.	
+
+DuplicateTokenEx		Creates a new primary token or impersonation token that duplicates an existing token.	
+
+GetTokenInformation		Retrieves information about a token.	
+
+IsTokenRestricted		Determines whether a token has a list of restricting SIDs.	
+
+OpenProcessToken		Retrieves a handle to the primary access token for a process.	
+
+OpenThreadToken		Retrieves a handle to the impersonation access token for a thread.	
+
+SetThreadToken		Assigns or removes an impersonation token for a thread.	
+
+SetTokenInformation		Changes a token's owner, primary group, or default DACL.
+```
+
+
 3. Try to use the attack in the context of Local Service instead of Network Service
 
 

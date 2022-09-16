@@ -93,9 +93,6 @@ HANDLE CreateRemoteThread(
 ```
 
 
-
-
-
 ### creating a code based injection
 
 for calc x64 winexec

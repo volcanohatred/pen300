@@ -385,6 +385,34 @@ Code that returns the path of any service binary thats not signed by Microsoft
 
 A protocol that allowss running powershell commands on a single or multiple remote systems
 
+WinRM - is Encrypted
+Kerberos Authentication by Default
+Network authentication - credentials are not passed to remote systems
+
+# enable powershell remoting
+
+1. start WinRM service
+2. set WinRM service startup type to automatic
+3. Create WinRM listener
+4. Allow Winrm requests through local firewall
+
+# PSRP ACLs
+
+1. The ACL for each powershell remote endpoint can be set
+`Get-PSSessionCOnfiguration | select-Object -ExcludeProperty Permission`
+
+# WINRM LISTNERS
+
+Kereberos authentication is reauired
+
+# Connecting to Non-Domain Systems
+
+PS Remoting is limited to systems that meet the follwing criteria :
+
+1. kerberos authentication
+2. Domain joined
+
+
 
 
 

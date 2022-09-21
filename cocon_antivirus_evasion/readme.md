@@ -80,6 +80,166 @@ IAT populated by linker.
 
 ntoskrnl.exe  - can by accessible by .sys file can access kernel function.
 
+### Windows
+
+OS convergence - Windows are trying to create a unified os for all devices.
+
+### User mode components
+
+smss.exe: Session manager
+wininit.exe: Part of boot time of  the system
+Lasass.exe: hooked by mimikatz using privilege debug 
+Service.exe : Service COntrol Manager
+Services:
+
+microsoft drivers list certificate msdn mimikatz
+
+`tree` command
+
+### Services
+
+ACPI - can be used to burn the system also
+
+services are hosted in srvhost.exe
+
+Third party services run their own processes
+
+csrss.exe service
+
+WInlogon
+
+`Get-Service | fl`
+
+`Get-Process | fl`
+
+`!process 0 0` 
+
+
+### prefetch files
+
+currently goes by the name SysMain
+
+## Objects and handlers
+
+Windows is objcet based operating system
+while linux is file based
+
+an object can be a file , process , thread and each object is represented by a handle
+a handle is a number index refernecing in a table the object it represents
+list of handles is given to processes
+handle values are private to each process since the handle table is process defined
+
+### UNicode
+
+can work with multiple values
+
+### msdn documentation
+
+CopyFileEx function or any other FUnction isprovides additional capabilities - extended compatiibilities
+
+all msdn use SAL (Saoftware annotation langugae) 
+
+CopyFileA - for ascii
+CopyFileU - for unicode
+
+lpctstr type break down -
+lp means long pointer
+c is constatn
+t stands for tchar - text string
+STR - string
+
+>Read remarks : if things dont work. 
+
+movefile_fail_if_not_reboot - move file until reboot, can be used to move file during reboot, and then scheduled automatic startup
+
+## Vocabulary
+
+### Sessions
+sessions - represent a group of rproesses that share windowing resources and a namespace 
+
+security descriptor - this is part of an object that describes object security rights 
+
+`Get-Acl "C:\Program Files (x86)\" | Format-List`
+
+session 0 is system
+
+session 1 is for interactive application - initialised by csrss.exe at boot-time
+
+other sessions come from other users 
+
+inside sessions we have processes
+
+### Processes
+
+different process may have different data in their respective address space
+
+A process is composed of 
+
+private virtual address
+an executable program
+
+list of open handle
+a thread 
+
+
+### Thread
+
+thread is an entity within a process that Windows schedules for execution
+
+thread has 
+information about the cpu
+two stacks : one for kernel and one for user mode
+private storage area called thead local storage for use by subsutems
+A unique number called thread ID
+their own security context or token
+fill access to the address space fo the process
+
+allocating memory - we use calloc and malloc and ntmap, virtual alloc, stack,.
+
+GetTHeradCOntext to get access to thread
+
+### Fibers
+
+Fibers allows an application to schedule its own threads of execution
+
+### User mode threads
+
+in windows 11 user mode scheduling is not supported
+
+### Jobs
+
+a list of process encapsulated in a single job. Example web browser like firefox.
+its a process and has a process ID
+
+`CreateRemoteThread` is used for dll injection.
+
+### Kernel mode vs User mode
+
+Ring 0 to RIng 3: 
+
+kernel mode refers to a mode of execution in a process in which a processor grants acess to all system memory and all CPU instructions.
+
+### Reverse engineering with ida
+
+1. find the all the entry point in IDA WinMAIN in terms of gui application
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+### Question 
+
+what is a security descriptor?
+
+how do we sync ida and windbg?
+
+how dows microsoft develop such complex operating system and still remain error free
+
+
+
+
+
 
 
 

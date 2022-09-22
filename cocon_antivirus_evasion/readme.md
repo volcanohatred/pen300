@@ -219,9 +219,72 @@ Ring 0 to RIng 3:
 
 kernel mode refers to a mode of execution in a process in which a processor grants acess to all system memory and all CPU instructions.
 
+kernel32.dll and KernelBase - interfaes users with kernel
+user32.dll - this is for gui
+
+ntdll.dll - fundamental dll makes the transition from ntdll.dll
+
+```
+for example in am exe - that calls fread() - 
+    will call ReadFile() -
+        will call NtReadFile() usermode ring 3 has ntdll.dll
+            which will call ZWReadFIle() ->
+                IoReadFile() will finally accesss file system
+                    Disk Manager
+                        Bus Driver
+                    
+```
+
+function prefixes - mm , ss , nt(new technology) , zw represent code family, rtl - run time library
+
+shared source code initiative - microsoft is sharing its source code
+https://www.microsoft.com/en-us/sharedsource/
+
+microsoft keeps changing the syscall numbers so that no one can really call
+
+### how antivirus hoook
+
+They hook onto function so that they can monitor the buffer
+
+but now it has a driver that is a pass through driver which is also called a mini filter
+looking at an altitude (altitude means where the driver is placed in the assembly code)
+https://learn.microsoft.com/en-us/windows-hardware/drivers/ifs/allocated-altitudes
+
+if you are administrator can we remove the antivirus
+
+preoperation - before accessing hardware
+and post operation -  after accessing hardware
+
+### NT Authority SYSTEM vs Process HAcker
+
+we can convert to SYSTEM by OpenTokenPRivilge token
+
+to convert into admin we need SeDebugPrivilege
+
+trusted installer privilege - for windows update
+
+### Virtual memory mapping on RAM
+
+memory is accessed 4kb at a time
+
+using page fold mechanism part of the memory is loaded into ram 
+so the entire memory of the code is not loaded into a ram
+
+if memory is laready loaded it acesses the memory otherwise it loads from the disk its called demand paging
+
+in forensics we can look at pagefile to get the data 
+
+When we use hybernation , our ram is pushed into the Disk and then is loaded from the disk when trying to start
+
+
 ### Reverse engineering with ida
 
 1. find the all the entry point in IDA WinMAIN in terms of gui application
+2. always change the literal
+3. you can switch to psuedocode instead of assembly
+4. 
+
+
 
 
 
@@ -235,6 +298,8 @@ what is a security descriptor?
 how do we sync ida and windbg?
 
 how dows microsoft develop such complex operating system and still remain error free
+
+The zwReadFile that we have is the code written in C# and C?
 
 
 

@@ -276,13 +276,95 @@ in forensics we can look at pagefile to get the data
 
 When we use hybernation , our ram is pushed into the Disk and then is loaded from the disk when trying to start
 
+### Virtual memory
+
+### Hypervisor
+
+VMNET monitor 
+
+A process inside the vm then does vmexit and then goes into hypervisor and then SLAT which has direct space marged to memory
+
+hypervisor is in ring0 it does not allow 
+
+### Virtual Secure mode
+
+TPM password protection - trusted password modules
+
+TPM (Trusted Platform Module) is a computer chip (microcontroller) that can securely store artifacts used to authenticate the platform (your PC or laptop). These artifacts can include passwords, certificates, or encryption keys.
+
+project Pluton in microsoft 
+
+VSM 
+
+https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/vsm
+
+vmxon operation
+
+Hypervisor virtualizes each processor in a virtual processor
+
+with a VTL each
+
+VTL can be upto 16 levels 
+
+CPUID : when we use virtual machine is actually the base machines name
+
+we can detect whether we are on virtual machine by using 
+
+### Device Guard
+
+Configurable Code Integrity
+VSM PRotected Code Integrity
+Platform and UEFI boot
+
+Secure boot
+Trusted boot
+system boot
+
+https://learn.microsoft.com/en-us/windows/security/information-protection/secure-the-windows-10-boot-process
+
+![](2022-09-22-15-21-14.png)
+
+## pafish
+
+for detecting virtual machine
+
+https://github.com/a0rtega/pafish
+
+cuckoo sandbox detecting hooks 
+
+### Windbg cheatsheet (pronounced as winbag)
+
+https://theartofdev.com/windbg-cheat-sheet/
+
+to extract symbols from ntdll
+
+`x ntdll!*`
+
+`?? @$PEB`
+
 
 ### Reverse engineering with ida
 
 1. find the all the entry point in IDA WinMAIN in terms of gui application
 2. always change the literal
 3. you can switch to psuedocode instead of assembly
-4. 
+4. Extract symbols from executable. If executable is compiled in debug mode then symbols might be there in the executable itself.
+
+steps:
+we got to entry point
+
+gs:assembly - search
+
+semi colon to make comments
+
+
+
+
+
+
+
+
+ 
 
 
 

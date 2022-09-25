@@ -357,21 +357,13 @@ gs:assembly - search
 
 semi colon to make comments
 
+### AD recon
 
+https://github.com/sense-of-security/ADRecon
 
+RansomEnclave
 
-
-
-
-
- 
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+Google Cloud service to mitigate network attacks
 
 ### Question 
 
@@ -382,6 +374,10 @@ how do we sync ida and windbg?
 how dows microsoft develop such complex operating system and still remain error free
 
 The zwReadFile that we have is the code written in C# and C?
+
+# certificate
+
+![](./cert.jpeg)
 
 
 

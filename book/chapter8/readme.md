@@ -411,6 +411,8 @@ FullLanguage
 
 cant check because it comes out to be FUll Language.
 
+to execute with constrained mode remember to run the code with the thing
+
 ### 8.3.1.1 Exercises
 1. Verify that constrained language mode is enabled for a PowerShell prompt executed in the 
 context of the “student” user.

